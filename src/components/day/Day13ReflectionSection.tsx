@@ -2,12 +2,11 @@ import React, { useCallback, useState } from 'react'
 import {
   Text,
   TextInput,
-  TouchableOpacity,
   StyleSheet,
 } from 'react-native'
 import Animated, { FadeIn } from 'react-native-reanimated'
-import * as Haptics from 'expo-haptics'
 import { COLORS, SPACING, BORDER_RADIUS, SHADOWS } from '@/constants/theme'
+import { ZenButton } from '@/components/ui/ZenButton'
 import WordCloud from './Day13WordCloud'
 
 // ─── Props ────────────────────────────────────────────────────────
@@ -25,12 +24,7 @@ const ReflectionSection = React.memo(function ReflectionSection({
 }: ReflectionSectionProps) {
   const [reflectionAnswer, setReflectionAnswer] = useState('')
 
-  const handleComplete = useCallback(async () => {
-    try {
-      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-    } catch {
-      // Haptics not available
-    }
+  const handleComplete = useCallback(() => {
     onComplete(reflectionAnswer)
   }, [reflectionAnswer, onComplete])
 
@@ -66,13 +60,11 @@ const ReflectionSection = React.memo(function ReflectionSection({
 
       {/* Complete button */}
       <Animated.View entering={FadeIn.delay(800).duration(400)} style={styles.completeWrapper}>
-        <TouchableOpacity
-          style={styles.completeButton}
+        <ZenButton
+          title="完成"
           onPress={handleComplete}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.completeButtonText}>完成</Text>
-        </TouchableOpacity>
+          fullWidth
+        />
       </Animated.View>
     </Animated.View>
   )
@@ -116,18 +108,6 @@ const styles = StyleSheet.create({
   completeWrapper: {
     marginTop: SPACING['2xl'],
     alignItems: 'center',
-  },
-  completeButton: {
-    paddingVertical: 14,
-    paddingHorizontal: SPACING['4xl'],
-    borderRadius: BORDER_RADIUS['2xl'],
-    backgroundColor: COLORS.primary,
-    ...SHADOWS.md,
-  },
-  completeButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.card,
   },
 })
 

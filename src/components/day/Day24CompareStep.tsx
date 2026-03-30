@@ -3,7 +3,6 @@ import {
   View,
   Text,
   TextInput,
-  TouchableOpacity,
   StyleSheet,
   ScrollView,
   KeyboardAvoidingView,
@@ -12,6 +11,7 @@ import {
 } from 'react-native'
 import Animated, { FadeIn, SlideInDown } from 'react-native-reanimated'
 import { COLORS, SPACING, BORDER_RADIUS, SHADOWS } from '@/constants/theme'
+import { ZenButton } from '@/components/ui/ZenButton'
 
 // ─── Props ─────────────────────────────────────────────────────────
 
@@ -94,13 +94,11 @@ const Day24CompareStep = React.memo(function Day24CompareStep({
         </Animated.View>
 
         {/* Complete button */}
-        <TouchableOpacity
-          style={styles.primaryButton}
+        <ZenButton
+          title="完成重写"
           onPress={onComplete}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.primaryButtonText}>完成重写</Text>
-        </TouchableOpacity>
+          style={styles.primaryButton}
+        />
       </ScrollView>
     </KeyboardAvoidingView>
   )
@@ -182,16 +180,6 @@ const styles = StyleSheet.create({
   },
   primaryButton: {
     marginTop: SPACING['3xl'],
-    paddingVertical: 14,
-    borderRadius: BORDER_RADIUS['2xl'],
-    backgroundColor: COLORS.primary,
-    alignItems: 'center',
-    ...SHADOWS.md,
-  },
-  primaryButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.card,
   },
 })
 

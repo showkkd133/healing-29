@@ -1,14 +1,15 @@
 // Shared constants for Day26 self-gift components
 
 export const WISH_TYPES = [
-  { id: 'travel', emoji: '✈️', label: '旅行' },
-  { id: 'item', emoji: '🎁', label: '物品' },
-  { id: 'experience', emoji: '🎭', label: '体验' },
-  { id: 'learning', emoji: '📚', label: '学习' },
+  { id: 'travel', icon: 'map', label: '旅行' },
+  { id: 'item', icon: 'gift', label: '物品' },
+  { id: 'experience', icon: 'activity', label: '体验' },
+  { id: 'learning', icon: 'book', label: '学习' },
 ] as const
 
 export const PLAN_OPTIONS = [
-  { id: 'today', label: '今天做' },
+...
+
   { id: 'this_week', label: '本周做' },
   { id: 'future', label: '规划未来做' },
 ] as const

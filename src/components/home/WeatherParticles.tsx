@@ -43,32 +43,32 @@ const rand = (min: number, max: number) => min + Math.random() * (max - min)
 const generateParticles = (
   weather: WeatherType, color: string, w: number, h: number,
 ): ParticleConfig[] =>
-  Array.from({ length: 6 }, (_, i) => { // Reduced from 10 to 6
-    const base = { x: rand(0, w), y: rand(0, h), delay: i * 500, rotation: 0 }
+  Array.from({ length: 4 }, (_, i) => { // Reduced from 6 to 4
+    const base = { x: rand(0, w), y: rand(0, h), delay: i * 800, rotation: 0 }
     switch (weather) {
       case 'storm': return {
-        ...base, size: 1.5, color, duration: rand(1200, 2000),
-        dx: rand(-50, -30), dy: h, borderRadius: 1,
-        opacity: rand(0.05, 0.1), rotation: -15, y: -20,
+        ...base, size: 1, color, duration: rand(1500, 2500),
+        dx: rand(-30, -20), dy: h, borderRadius: 1,
+        opacity: rand(0.02, 0.05), rotation: -15, y: -20,
       }
       case 'cloudy': return {
-        ...base, size: rand(20, 40), color, duration: rand(8000, 12000),
-        dx: rand(20, 40), dy: 0, borderRadius: 20, opacity: rand(0.03, 0.06),
+        ...base, size: rand(30, 60), color, duration: rand(10000, 15000),
+        dx: rand(20, 40), dy: 0, borderRadius: 30, opacity: rand(0.01, 0.03),
       }
       case 'clearing': return {
-        ...base, size: rand(4, 8), color, duration: rand(6000, 10000),
-        dx: 0, dy: rand(10, 20), borderRadius: 2,
-        opacity: rand(0.05, 0.1), y: rand(0, h * 0.5),
+        ...base, size: rand(3, 6), color, duration: rand(8000, 12000),
+        dx: 0, dy: rand(5, 15), borderRadius: 2,
+        opacity: rand(0.02, 0.06), y: rand(0, h * 0.4),
       }
       case 'sunny': return {
-        ...base, size: rand(2, 5), color, duration: rand(8000, 12000),
-        dx: rand(-5, 5), dy: -rand(30, 60), borderRadius: 9999,
-        opacity: rand(0.05, 0.15),
+        ...base, size: rand(2, 4), color, duration: rand(10000, 15000),
+        dx: rand(-5, 5), dy: -rand(20, 50), borderRadius: 9999,
+        opacity: rand(0.03, 0.08),
       }
       default: return { // rainbow
-        ...base, size: rand(4, 8), color: RAINBOW[i % RAINBOW.length],
-        duration: rand(10000, 15000), dx: rand(-10, 10), dy: rand(-10, 10),
-        borderRadius: 9999, opacity: rand(0.05, 0.1),
+        ...base, size: rand(3, 6), color: RAINBOW[i % RAINBOW.length],
+        duration: rand(12000, 18000), dx: rand(-5, 5), dy: rand(-5, 5),
+        borderRadius: 9999, opacity: rand(0.02, 0.06),
       }
     }
   })

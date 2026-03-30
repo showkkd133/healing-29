@@ -3,7 +3,9 @@
 import React from 'react'
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native'
 import Animated, { FadeIn } from 'react-native-reanimated'
+import { Feather } from '@expo/vector-icons'
 import { COLORS, SPACING, BORDER_RADIUS } from '@/constants/theme'
+import { useHaptic } from '@/hooks/useHaptic'
 import { REACTIONS } from './Day12Constants'
 
 interface Day12ReactionSectionProps {
@@ -19,6 +21,13 @@ const Day12ReactionSection = React.memo(function Day12ReactionSection({
   onChangeDescription,
   onSelectReaction,
 }: Day12ReactionSectionProps) {
+  const haptic = useHaptic();
+
+  const handleSelect = (id: string) => {
+    haptic.medium();
+    onSelectReaction(id);
+  }
+
   return (
     <Animated.View entering={FadeIn.duration(400)}>
       <Text style={styles.sectionLabel}>描述TA的反应</Text>
@@ -42,10 +51,15 @@ const Day12ReactionSection = React.memo(function Day12ReactionSection({
               styles.reactionTag,
               selectedReaction === reaction.id && styles.reactionTagActive,
             ]}
-            onPress={() => onSelectReaction(reaction.id)}
+            onPress={() => handleSelect(reaction.id)}
             activeOpacity={0.7}
           >
-            <Text style={styles.reactionEmoji}>{reaction.emoji}</Text>
+            <Feather 
+              name={reaction.iconName as any} 
+              size={24} 
+              color={selectedReaction === reaction.id ? COLORS.accent : COLORS.textTertiary} 
+              style={styles.reactionIcon}
+            />
             <Text
               style={[
                 styles.reactionLabel,

@@ -7,13 +7,16 @@ import {
   StyleSheet,
 } from 'react-native'
 import Animated, { FadeIn } from 'react-native-reanimated'
-import * as Haptics from 'expo-haptics'
+import { Feather, Ionicons } from '@expo/vector-icons'
 import { COLORS, SPACING, BORDER_RADIUS } from '@/constants/theme'
+import { useHaptic } from '@/hooks/useHaptic'
+import { ZenButton } from '../ui/ZenButton'
 import {
   TRIGGER_TYPES,
   BODY_RESPONSES,
   COPING_STRATEGIES,
   type TriggerEntry,
+  type TriggerOption,
 } from './Day22Constants'
 import Day22EffectivenessPicker from './Day22EffectivenessPicker'
 
@@ -28,6 +31,7 @@ interface Day22TriggerFormProps {
 const Day22TriggerForm = React.memo(function Day22TriggerForm({
   onAdd,
 }: Day22TriggerFormProps) {
+  const haptic = useHaptic()
   const [selectedType, setSelectedType] = useState<string | null>(null)
   const [triggerName, setTriggerName] = useState('')
   const [selectedResponse, setSelectedResponse] = useState<string | null>(null)
@@ -48,7 +52,7 @@ const Day22TriggerForm = React.memo(function Day22TriggerForm({
     setEffectiveness(3)
   }, [])
 
-  const handleAddTrigger = useCallback(async () => {
+  const handleAddTrigger = useCallback(() => {
     if (!canAddTrigger || !selectedType || !selectedResponse || !selectedStrategy) return
 
     const newTrigger: TriggerEntry = {
@@ -60,40 +64,31 @@ const Day22TriggerForm = React.memo(function Day22TriggerForm({
     }
     onAdd(newTrigger)
     resetForm()
+    haptic.success()
+  }, [canAddTrigger, selectedType, triggerName, selectedResponse, selectedStrategy, effectiveness, resetForm, onAdd, haptic])
 
-    try {
-      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-    } catch {
-      // Haptics not available
-    }
-  }, [canAddTrigger, selectedType, triggerName, selectedResponse, selectedStrategy, effectiveness, resetForm, onAdd])
-
-  const handleSelectType = useCallback(async (typeId: string) => {
+  const handleSelectType = useCallback((typeId: string) => {
     setSelectedType(typeId)
-    try {
-      await Haptics.selectionAsync()
-    } catch {
-      // Haptics not available
-    }
-  }, [])
+    haptic.light()
+  }, [haptic])
 
-  const handleSelectResponse = useCallback(async (responseId: string) => {
+  const handleSelectResponse = useCallback((responseId: string) => {
     setSelectedResponse(responseId)
-    try {
-      await Haptics.selectionAsync()
-    } catch {
-      // Haptics not available
-    }
-  }, [])
+    haptic.light()
+  }, [haptic])
 
-  const handleSelectStrategy = useCallback(async (strategyId: string) => {
+  const handleSelectStrategy = useCallback((strategyId: string) => {
     setSelectedStrategy(strategyId)
-    try {
-      await Haptics.selectionAsync()
-    } catch {
-      // Haptics not available
-    }
-  }, [])
+    haptic.light()
+  }, [haptic])
+
+  const renderIcon = (option: TriggerOption, isActive: boolean) => {
+    const IconComponent = option.provider === 'Ionicons' ? Ionicons : Feather
+    const iconSize = 20
+    const color = isActive ? COLORS.white : COLORS.primary
+
+    return <IconComponent name={option.icon as any} size={iconSize} color={color} />
+  }
 
   return (
     <Animated.View entering={FadeIn.duration(400)} style={styles.formSection}>
@@ -110,7 +105,7 @@ const Day22TriggerForm = React.memo(function Day22TriggerForm({
             onPress={() => handleSelectType(type.id)}
             activeOpacity={0.7}
           >
-            <Text style={styles.typeEmoji}>{type.emoji}</Text>
+            {renderIcon(type, selectedType === type.id)}
             <Text
               style={[
                 styles.typeLabel,
@@ -147,7 +142,7 @@ const Day22TriggerForm = React.memo(function Day22TriggerForm({
             onPress={() => handleSelectResponse(resp.id)}
             activeOpacity={0.7}
           >
-            <Text style={styles.optionEmoji}>{resp.emoji}</Text>
+            {renderIcon(resp, selectedResponse === resp.id)}
             <Text
               style={[
                 styles.optionLabel,
@@ -173,7 +168,7 @@ const Day22TriggerForm = React.memo(function Day22TriggerForm({
             onPress={() => handleSelectStrategy(strat.id)}
             activeOpacity={0.7}
           >
-            <Text style={styles.optionEmoji}>{strat.emoji}</Text>
+            {renderIcon(strat, selectedStrategy === strat.id)}
             <Text
               style={[
                 styles.optionLabel,
@@ -190,16 +185,13 @@ const Day22TriggerForm = React.memo(function Day22TriggerForm({
       <Day22EffectivenessPicker value={effectiveness} onChange={setEffectiveness} />
 
       {/* Add button */}
-      <TouchableOpacity
-        style={[styles.addButton, !canAddTrigger && styles.addButtonDisabled]}
+      <ZenButton
+        title="添加触发点"
         onPress={handleAddTrigger}
         disabled={!canAddTrigger}
-        activeOpacity={0.8}
-      >
-        <Text style={[styles.addButtonText, !canAddTrigger && styles.addButtonTextDisabled]}>
-          添加触发点
-        </Text>
-      </TouchableOpacity>
+        style={styles.addButton}
+        fullWidth
+      />
     </Animated.View>
   )
 })

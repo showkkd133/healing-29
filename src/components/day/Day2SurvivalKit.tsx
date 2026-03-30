@@ -2,12 +2,13 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   View,
   Text,
-  TouchableOpacity,
   StyleSheet,
 } from 'react-native'
 import Animated, { FadeIn } from 'react-native-reanimated'
+import { Feather, Ionicons } from '@expo/vector-icons'
 import { COLORS, SPACING, BORDER_RADIUS, SHADOWS } from '@/constants/theme'
 import type { Day2Data } from '@/types'
+import { ZenButton } from '../ui/ZenButton'
 import FlipCard from './Day2FlipCard'
 import type { TaskItem } from './Day2FlipCard'
 
@@ -20,9 +21,9 @@ interface Day2SurvivalKitProps {
 // ─── Task definitions ──────────────────────────────────────────────
 
 const TASKS: readonly TaskItem[] = [
-  { id: 0, title: '起床', icon: '🌅' },
-  { id: 1, title: '吃一顿饭', icon: '🍚' },
-  { id: 2, title: '洗个脸', icon: '💧' },
+  { id: 0, title: '起床', icon: 'sunrise', provider: 'Feather' },
+  { id: 1, title: '吃一顿饭', icon: 'restaurant', provider: 'Ionicons' },
+  { id: 2, title: '洗个脸', icon: 'droplet', provider: 'Feather' },
 ] as const
 
 // ─── Main component ────────────────────────────────────────────────
@@ -87,7 +88,13 @@ const Day2SurvivalKit = React.memo(function Day2SurvivalKit({
     return (
       <View style={styles.container}>
         <Animated.View entering={FadeIn.duration(800)} style={styles.resultContainer}>
-          <Text style={styles.resultEmoji}>{allDone ? '🏆' : '🌱'}</Text>
+          <View style={styles.resultIconWrapper}>
+            {allDone ? (
+              <Feather name="award" size={64} color={COLORS.accent} />
+            ) : (
+              <Feather name="leaf" size={64} color={COLORS.success} />
+            )}
+          </View>
           <Text style={styles.resultText}>
             {allDone
               ? '今天的KPI达成了，其他事都不重要'
@@ -136,25 +143,23 @@ const Day2SurvivalKit = React.memo(function Day2SurvivalKit({
           <Text style={styles.allDoneText}>
             今天的KPI达成了，其他事都不重要
           </Text>
-          <TouchableOpacity
-            style={styles.shareButton}
+          <ZenButton
+            title="分享 '我今天好好活着'"
+            rightIcon="award"
             onPress={handleContinue}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.shareButtonText}>分享 "我今天好好活着" 🎖</Text>
-          </TouchableOpacity>
+            variant="hero"
+            fullWidth
+          />
         </Animated.View>
       )}
 
       {!allDone && completed.some(Boolean) && (
         <Animated.View entering={FadeIn.duration(400)} style={styles.bottomSection}>
-          <TouchableOpacity
-            style={styles.skipButton}
+          <ZenButton
+            title="先到这里，明天继续"
             onPress={handleSkip}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.skipText}>先到这里，明天继续</Text>
-          </TouchableOpacity>
+            variant="ghost"
+          />
         </Animated.View>
       )}
     </View>
@@ -197,6 +202,7 @@ const styles = StyleSheet.create({
   bottomSection: {
     marginTop: SPACING['3xl'],
     alignItems: 'center',
+    width: '100%',
   },
   allDoneText: {
     fontSize: 16,
@@ -206,34 +212,12 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.xl,
     lineHeight: 24,
   },
-  shareButton: {
-    paddingVertical: 14,
-    paddingHorizontal: SPACING['3xl'],
-    borderRadius: BORDER_RADIUS['2xl'],
-    backgroundColor: COLORS.accent,
-    ...SHADOWS.sm,
-  },
-  shareButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.card,
-  },
-  skipButton: {
-    paddingVertical: 12,
-    paddingHorizontal: SPACING['2xl'],
-  },
-  skipText: {
-    fontSize: 15,
-    color: COLORS.textSecondary,
-    fontWeight: '500',
-  },
   resultContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  resultEmoji: {
-    fontSize: 48,
+  resultIconWrapper: {
     marginBottom: SPACING.xl,
   },
   resultText: {

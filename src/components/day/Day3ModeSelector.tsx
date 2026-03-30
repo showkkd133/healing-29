@@ -1,8 +1,9 @@
 import React, { useCallback } from 'react'
-import { TouchableOpacity, Text, StyleSheet } from 'react-native'
+import { View, Text, StyleSheet } from 'react-native'
 import Animated, { FadeIn } from 'react-native-reanimated'
-import * as Haptics from 'expo-haptics'
+import { Feather, Ionicons } from '@expo/vector-icons'
 import { COLORS, SPACING, BORDER_RADIUS, SHADOWS } from '@/constants/theme'
+import { ZenButton } from '../ui/ZenButton'
 import type { CompanionMode } from './Day3Constants'
 
 // ─── Props ─────────────────────────────────────────────────────────
@@ -19,12 +20,7 @@ const Day3ModeSelector = React.memo(function Day3ModeSelector({
   onSelect,
 }: Day3ModeSelectorProps) {
   const handleSelect = useCallback(
-    async (mode: CompanionMode) => {
-      try {
-        await Haptics.selectionAsync()
-      } catch {
-        // Haptics not available
-      }
+    (mode: CompanionMode) => {
       onSelect(mode)
     },
     [onSelect]
@@ -32,28 +28,42 @@ const Day3ModeSelector = React.memo(function Day3ModeSelector({
 
   return (
     <Animated.View entering={FadeIn.delay(400).duration(500)} style={styles.modeRow}>
-      <TouchableOpacity
+      <ZenButton
+        variant="ghost"
         style={[styles.modeCard, selected === 'message' && styles.modeCardActive]}
         onPress={() => handleSelect('message')}
-        activeOpacity={0.8}
       >
-        <Text style={styles.modeIcon}>💌</Text>
-        <Text style={[styles.modeLabel, selected === 'message' && styles.modeLabelActive]}>
-          A 给朋友的信
-        </Text>
-        <Text style={styles.modeDesc}>告诉TA你的状态</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
+        <View style={styles.cardContent}>
+          <Feather 
+            name="mail" 
+            size={28} 
+            color={selected === 'message' ? COLORS.primary : COLORS.textSecondary} 
+            style={styles.modeIcon} 
+          />
+          <Text style={[styles.modeLabel, selected === 'message' && styles.modeLabelActive]}>
+            A 给朋友的信
+          </Text>
+          <Text style={styles.modeDesc}>告诉TA你的状态</Text>
+        </View>
+      </ZenButton>
+      <ZenButton
+        variant="ghost"
         style={[styles.modeCard, selected === 'presence' && styles.modeCardActive]}
         onPress={() => handleSelect('presence')}
-        activeOpacity={0.8}
       >
-        <Text style={styles.modeIcon}>🏙</Text>
-        <Text style={[styles.modeLabel, selected === 'presence' && styles.modeLabelActive]}>
-          B 无声陪伴
-        </Text>
-        <Text style={styles.modeDesc}>去一个公共场所坐坐</Text>
-      </TouchableOpacity>
+        <View style={styles.cardContent}>
+          <Ionicons 
+            name="business-outline" 
+            size={28} 
+            color={selected === 'presence' ? COLORS.primary : COLORS.textSecondary} 
+            style={styles.modeIcon} 
+          />
+          <Text style={[styles.modeLabel, selected === 'presence' && styles.modeLabelActive]}>
+            B 无声陪伴
+          </Text>
+          <Text style={styles.modeDesc}>去一个公共场所坐坐</Text>
+        </View>
+      </ZenButton>
     </Animated.View>
   )
 })
@@ -71,7 +81,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.card,
     borderRadius: BORDER_RADIUS.xl,
     padding: SPACING.lg,
-    alignItems: 'center',
+    height: 'auto',
     borderWidth: 2,
     borderColor: 'transparent',
     ...SHADOWS.sm,
@@ -80,8 +90,11 @@ const styles = StyleSheet.create({
     borderColor: COLORS.primary,
     backgroundColor: '#F0F5FA',
   },
+  cardContent: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   modeIcon: {
-    fontSize: 28,
     marginBottom: SPACING.sm,
   },
   modeLabel: {

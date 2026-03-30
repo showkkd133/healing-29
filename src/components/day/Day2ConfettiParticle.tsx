@@ -8,18 +8,20 @@ import Animated, {
   withDelay,
   Easing,
 } from 'react-native-reanimated'
+import { Feather } from '@expo/vector-icons'
+import { COLORS } from '@/constants/theme'
 
 // ─── Props ─────────────────────────────────────────────────────────
 
 interface ConfettiParticleProps {
-  readonly emoji: string
+  readonly icon: keyof typeof Feather.glyphMap
   readonly index: number
 }
 
 // ─── Component ────────────────────────────────────────────────────
 
 const ConfettiParticle = React.memo(function ConfettiParticle({
-  emoji,
+  icon,
   index,
 }: ConfettiParticleProps) {
   const translateY = useSharedValue(0)
@@ -50,9 +52,9 @@ const ConfettiParticle = React.memo(function ConfettiParticle({
   }))
 
   return (
-    <Animated.Text style={[styles.confetti, style]}>
-      {emoji}
-    </Animated.Text>
+    <Animated.View style={[styles.confetti, style]}>
+      <Feather name={icon} size={20} color={COLORS.accent} />
+    </Animated.View>
   )
 })
 
@@ -61,7 +63,6 @@ const ConfettiParticle = React.memo(function ConfettiParticle({
 const styles = StyleSheet.create({
   confetti: {
     position: 'absolute',
-    fontSize: 20,
   },
 })
 

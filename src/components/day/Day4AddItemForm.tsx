@@ -1,8 +1,9 @@
 import React from 'react'
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native'
+import { View, TextInput, StyleSheet } from 'react-native'
 import Animated, { SlideInDown } from 'react-native-reanimated'
 import { COLORS, SPACING, BORDER_RADIUS, SHADOWS } from '@/constants/theme'
 import { CATEGORIES } from './Day4Types'
+import { ZenButton } from '../ui/ZenButton'
 
 interface Day4AddItemFormProps {
   readonly itemName: string
@@ -36,45 +37,31 @@ const Day4AddItemForm = React.memo(function Day4AddItemForm({
       />
       <View style={styles.categoryRow}>
         {CATEGORIES.map((cat) => (
-          <TouchableOpacity
+          <ZenButton
             key={cat.key}
-            style={[
-              styles.categoryChip,
-              itemCategory === cat.key && styles.categoryChipActive,
-            ]}
+            title={cat.label}
+            leftIcon={cat.icon as any}
+            variant={itemCategory === cat.key ? 'primary' : 'outline'}
+            size="sm"
             onPress={() => onCategoryChange(cat.key)}
-            activeOpacity={0.7}
-          >
-            <Text
-              style={[
-                styles.categoryChipText,
-                itemCategory === cat.key && styles.categoryChipTextActive,
-              ]}
-            >
-              {cat.label}
-            </Text>
-          </TouchableOpacity>
+            style={styles.categoryChip}
+          />
         ))}
       </View>
       <View style={styles.actions}>
-        <TouchableOpacity
-          style={styles.cancelButton}
+        <ZenButton
+          title="取消"
+          variant="ghost"
+          size="sm"
           onPress={onCancel}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.cancelButtonText}>取消</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[
-            styles.confirmButton,
-            !isValid && styles.confirmButtonDisabled,
-          ]}
+        />
+        <ZenButton
+          title="确认"
+          variant="primary"
+          size="sm"
           onPress={onConfirm}
           disabled={!isValid}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.confirmButtonText}>确认</Text>
-        </TouchableOpacity>
+        />
       </View>
     </Animated.View>
   )
@@ -104,48 +91,12 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.md,
   },
   categoryChip: {
-    paddingVertical: SPACING.xs,
     paddingHorizontal: SPACING.sm,
-    borderRadius: BORDER_RADIUS.lg,
-    backgroundColor: COLORS.background,
-  },
-  categoryChipActive: {
-    backgroundColor: COLORS.secondary,
-  },
-  categoryChipText: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-  },
-  categoryChipTextActive: {
-    color: COLORS.text,
   },
   actions: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
     gap: SPACING.sm,
-  },
-  cancelButton: {
-    paddingVertical: SPACING.sm,
-    paddingHorizontal: SPACING.lg,
-    borderRadius: BORDER_RADIUS.lg,
-  },
-  cancelButtonText: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-  },
-  confirmButton: {
-    paddingVertical: SPACING.sm,
-    paddingHorizontal: SPACING.lg,
-    borderRadius: BORDER_RADIUS.lg,
-    backgroundColor: COLORS.primary,
-  },
-  confirmButtonDisabled: {
-    backgroundColor: COLORS.border,
-  },
-  confirmButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: COLORS.card,
   },
 })
 

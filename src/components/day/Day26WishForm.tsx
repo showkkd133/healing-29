@@ -1,18 +1,20 @@
 import React from 'react'
 import {
   View,
-  Text,
   TextInput,
-  TouchableOpacity,
   StyleSheet,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native'
-import Animated, { FadeIn } from 'react-native-reanimated'
+import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated'
 import { COLORS, SPACING, BORDER_RADIUS, SHADOWS } from '@/constants/theme'
 import { WISH_TYPES, PLAN_OPTIONS, SLIDER_LABELS, GUIDANCE_TEXT } from './Day26Constants'
 import Day26SliderRow from './Day26SliderRow'
+import { ZenButton } from '../ui/ZenButton'
+import { ZenIconButton } from '../ui/ZenIconButton'
+import { ZenTypography } from '../ui/ZenTypography'
+import { useHaptic } from '@/hooks/useHaptic'
 
 // ─── Props ─────────────────────────────────────────────────────────
 
@@ -49,6 +51,13 @@ const Day26WishForm = React.memo(function Day26WishForm({
   onChangeExecutionNote,
   onShowCertificate,
 }: Day26WishFormProps) {
+  const haptic = useHaptic();
+
+  const handleSelectType = (id: string) => {
+    haptic.light();
+    onSelectType(id);
+  };
+
   return (
     <KeyboardAvoidingView
       style={styles.keyboardView}
@@ -60,31 +69,42 @@ const Day26WishForm = React.memo(function Day26WishForm({
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        <Animated.Text entering={FadeIn.delay(200).duration(500)} style={styles.guidanceText}>
-          {GUIDANCE_TEXT}
-        </Animated.Text>
+        <Animated.View entering={FadeIn.delay(200).duration(600)}>
+          <ZenTypography variant="medium" size="lg" color="text" align="center" style={styles.guidanceText}>
+            {GUIDANCE_TEXT}
+          </ZenTypography>
+        </Animated.View>
 
         {/* Wish type tabs */}
         <Animated.View entering={FadeIn.delay(400).duration(400)} style={styles.tabRow}>
           {WISH_TYPES.map((type) => (
-            <TouchableOpacity
-              key={type.id}
-              style={[styles.tab, selectedType === type.id && styles.tabActive]}
-              onPress={() => onSelectType(type.id)}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.tabEmoji}>{type.emoji}</Text>
-              <Text style={[styles.tabLabel, selectedType === type.id && styles.tabLabelActive]}>
+            <View key={type.id} style={styles.tabWrapper}>
+              <ZenIconButton
+                icon={type.icon}
+                size={56}
+                backgroundColor={selectedType === type.id ? COLORS.primary : COLORS.card}
+                color={selectedType === type.id ? COLORS.white : COLORS.textTertiary}
+                onPress={() => handleSelectType(type.id)}
+                style={styles.iconTab}
+              />
+              <ZenTypography 
+                size="xs" 
+                variant={selectedType === type.id ? 'bold' : 'medium'}
+                color={selectedType === type.id ? 'primary' : 'textTertiary'}
+                style={styles.tabLabel}
+              >
                 {type.label}
-              </Text>
-            </TouchableOpacity>
+              </ZenTypography>
+            </View>
           ))}
         </Animated.View>
 
         {/* Wish input */}
         {selectedType !== null && (
-          <Animated.View entering={FadeIn.duration(300)}>
-            <Text style={styles.sectionLabel}>你想做什么？</Text>
+          <Animated.View entering={FadeInDown.duration(400)}>
+            <ZenTypography variant="bold" size="sm" color="text" style={styles.sectionLabel}>
+              你想做什么？
+            </ZenTypography>
             <TextInput
               style={styles.textInput}
               value={wish}
@@ -100,8 +120,10 @@ const Day26WishForm = React.memo(function Day26WishForm({
 
         {/* Feasibility sliders */}
         {wish.trim().length > 0 && (
-          <Animated.View entering={FadeIn.duration(300)}>
-            <Text style={styles.sectionLabel}>可行性评估</Text>
+          <Animated.View entering={FadeInDown.duration(400)}>
+            <ZenTypography variant="bold" size="sm" color="text" style={styles.sectionLabel}>
+              可行性评估
+            </ZenTypography>
             <View style={styles.sliderCard}>
               {SLIDER_LABELS.map((slider) => (
                 <Day26SliderRow
@@ -111,29 +133,32 @@ const Day26WishForm = React.memo(function Day26WishForm({
                   onChange={(val) => onFeasibilityChange(slider.id, val)}
                 />
               ))}
-              <Text style={styles.avgText}>综合可行性：{avgFeasibility}/5</Text>
+              <View style={styles.avgContainer}>
+                <ZenTypography variant="bold" size="sm" color="primary">
+                  综合可行性：{avgFeasibility}/5
+                </ZenTypography>
+              </View>
             </View>
           </Animated.View>
         )}
 
         {/* Plan selection */}
         {wish.trim().length > 0 && (
-          <Animated.View entering={FadeIn.duration(300)}>
-            <Text style={styles.sectionLabel}>执行计划</Text>
+          <Animated.View entering={FadeInDown.duration(400)}>
+            <ZenTypography variant="bold" size="sm" color="text" style={styles.sectionLabel}>
+              执行计划
+            </ZenTypography>
             <View style={styles.planRow}>
               {PLAN_OPTIONS.map((plan) => (
-                <TouchableOpacity
-                  key={plan.id}
-                  style={[styles.planButton, selectedPlan === plan.id && styles.planButtonActive]}
-                  onPress={() => onSelectPlan(plan.id)}
-                  activeOpacity={0.7}
-                >
-                  <Text
-                    style={[styles.planText, selectedPlan === plan.id && styles.planTextActive]}
-                  >
-                    {plan.label}
-                  </Text>
-                </TouchableOpacity>
+                <View key={plan.id} style={styles.planButtonWrapper}>
+                  <ZenButton
+                    title={plan.label}
+                    variant={selectedPlan === plan.id ? 'primary' : 'outline'}
+                    size="sm"
+                    fullWidth
+                    onPress={() => onSelectPlan(plan.id)}
+                  />
+                </View>
               ))}
             </View>
           </Animated.View>
@@ -141,8 +166,10 @@ const Day26WishForm = React.memo(function Day26WishForm({
 
         {/* Execution record */}
         {selectedPlan !== null && (
-          <Animated.View entering={FadeIn.duration(300)}>
-            <Text style={styles.sectionLabel}>执行记录（可选）</Text>
+          <Animated.View entering={FadeInDown.duration(400)}>
+            <ZenTypography variant="bold" size="sm" color="text" style={styles.sectionLabel}>
+              执行记录（可选）
+            </ZenTypography>
             <TextInput
               style={styles.textInput}
               value={executionNote}
@@ -154,33 +181,33 @@ const Day26WishForm = React.memo(function Day26WishForm({
               maxLength={500}
             />
 
-            {/* Photo placeholder */}
-            <TouchableOpacity style={styles.photoButton} activeOpacity={0.7}>
-              <Text style={styles.photoEmoji}>📷</Text>
-              <Text style={styles.photoText}>拍照记录</Text>
-            </TouchableOpacity>
+            <ZenButton
+              title="拍照记录"
+              variant="ghost"
+              size="md"
+              leftIcon="camera"
+              style={styles.photoButton}
+              onPress={() => haptic.light()}
+            />
           </Animated.View>
         )}
 
         {/* Generate certificate */}
-        <TouchableOpacity
-          style={[styles.primaryButton, !canComplete && styles.primaryButtonDisabled]}
-          onPress={onShowCertificate}
-          disabled={!canComplete}
-          activeOpacity={0.8}
-        >
-          <Text
-            style={[styles.primaryButtonText, !canComplete && styles.primaryButtonTextDisabled]}
-          >
-            生成自我礼物证书
-          </Text>
-        </TouchableOpacity>
+        <Animated.View entering={FadeIn.delay(200)}>
+          <ZenButton
+            title="生成自我礼物证书"
+            variant="hero"
+            size="lg"
+            fullWidth
+            onPress={onShowCertificate}
+            disabled={!canComplete}
+            style={styles.primaryButton}
+          />
+        </Animated.View>
       </ScrollView>
     </KeyboardAvoidingView>
   )
 })
-
-// ─── Styles ────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
   keyboardView: {
@@ -190,138 +217,71 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: SPACING['5xl'],
+    paddingBottom: SPACING['6xl'],
+    paddingHorizontal: SPACING.xl,
   },
   guidanceText: {
-    fontSize: 20,
-    fontWeight: '500',
-    color: COLORS.text,
-    textAlign: 'center',
     lineHeight: 32,
     marginBottom: SPACING['3xl'],
+    marginTop: SPACING.lg,
   },
   sectionLabel: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: COLORS.text,
     marginBottom: SPACING.md,
-    marginTop: SPACING.xl,
+    marginTop: SPACING['2xl'],
   },
   tabRow: {
     flexDirection: 'row',
-    gap: SPACING.sm,
+    justifyContent: 'space-between',
+    paddingHorizontal: SPACING.sm,
   },
-  tab: {
-    flex: 1,
-    paddingVertical: SPACING.md,
-    borderRadius: BORDER_RADIUS.lg,
-    backgroundColor: COLORS.card,
+  tabWrapper: {
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: COLORS.border,
+    gap: SPACING.xs,
   },
-  tabActive: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
-  },
-  tabEmoji: {
-    fontSize: 20,
-    marginBottom: SPACING.xs,
+  iconTab: {
+    ...SHADOWS.sm,
   },
   tabLabel: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: COLORS.text,
-  },
-  tabLabelActive: {
-    color: COLORS.card,
+    marginTop: 2,
   },
   textInput: {
-    minHeight: 80,
+    minHeight: 120,
     backgroundColor: COLORS.card,
     borderRadius: BORDER_RADIUS.lg,
     padding: SPACING.lg,
-    fontSize: 15,
+    fontSize: 16,
     lineHeight: 24,
     color: COLORS.text,
-    ...SHADOWS.sm,
+    ...SHADOWS.md,
   },
   sliderCard: {
     backgroundColor: COLORS.card,
     borderRadius: BORDER_RADIUS.xl,
     padding: SPACING.lg,
-    ...SHADOWS.sm,
+    ...SHADOWS.md,
   },
-  avgText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: COLORS.primary,
-    textAlign: 'center',
+  avgContainer: {
+    alignItems: 'center',
     marginTop: SPACING.md,
+    paddingTop: SPACING.md,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.borderLight,
   },
   planRow: {
     flexDirection: 'row',
     gap: SPACING.sm,
   },
-  planButton: {
+  planButtonWrapper: {
     flex: 1,
-    paddingVertical: SPACING.md,
-    borderRadius: BORDER_RADIUS.lg,
-    backgroundColor: COLORS.card,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  planButtonActive: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
-  },
-  planText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: COLORS.text,
-  },
-  planTextActive: {
-    color: COLORS.card,
   },
   photoButton: {
-    marginTop: SPACING.md,
-    paddingVertical: SPACING.lg,
-    borderRadius: BORDER_RADIUS.lg,
-    backgroundColor: COLORS.card,
+    marginTop: SPACING.lg,
+    borderStyle: 'dashed',
     borderWidth: 1,
     borderColor: COLORS.border,
-    borderStyle: 'dashed',
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: SPACING.sm,
-  },
-  photoEmoji: {
-    fontSize: 20,
-  },
-  photoText: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
   },
   primaryButton: {
-    marginTop: SPACING['3xl'],
-    paddingVertical: 14,
-    borderRadius: BORDER_RADIUS['2xl'],
-    backgroundColor: COLORS.primary,
-    alignItems: 'center',
-    ...SHADOWS.md,
-  },
-  primaryButtonDisabled: {
-    backgroundColor: COLORS.border,
-  },
-  primaryButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.card,
-  },
-  primaryButtonTextDisabled: {
-    color: COLORS.textTertiary,
+    marginTop: SPACING['4xl'],
   },
 })
 

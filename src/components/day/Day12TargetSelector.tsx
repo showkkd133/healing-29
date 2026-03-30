@@ -3,7 +3,9 @@
 import React from 'react'
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
 import Animated, { FadeIn } from 'react-native-reanimated'
+import { Feather, Ionicons } from '@expo/vector-icons'
 import { COLORS, SPACING, BORDER_RADIUS, SHADOWS } from '@/constants/theme'
+import { useHaptic } from '@/hooks/useHaptic'
 import { TARGET_TABS, INTROVERT_TARGETS } from './Day12Constants'
 
 interface Day12TargetSelectorProps {
@@ -19,7 +21,18 @@ const Day12TargetSelector = React.memo(function Day12TargetSelector({
   onToggleIntrovert,
   onSelectTarget,
 }: Day12TargetSelectorProps) {
+  const haptic = useHaptic();
   const activeTargets = showIntrovert ? INTROVERT_TARGETS : TARGET_TABS
+
+  const handleToggle = () => {
+    haptic.light();
+    onToggleIntrovert();
+  }
+
+  const handleSelect = (id: string) => {
+    haptic.medium();
+    onSelectTarget(id);
+  }
 
   return (
     <Animated.View entering={FadeIn.delay(200).duration(500)}>
@@ -27,7 +40,7 @@ const Day12TargetSelector = React.memo(function Day12TargetSelector({
         <Text style={styles.sectionLabel}>选择对象</Text>
         <TouchableOpacity
           style={styles.introvertToggle}
-          onPress={onToggleIntrovert}
+          onPress={handleToggle}
           activeOpacity={0.7}
         >
           <Text style={styles.introvertText}>
@@ -44,10 +57,24 @@ const Day12TargetSelector = React.memo(function Day12TargetSelector({
               styles.targetCard,
               selectedTarget === target.id && styles.targetCardActive,
             ]}
-            onPress={() => onSelectTarget(target.id)}
+            onPress={() => handleSelect(target.id)}
             activeOpacity={0.7}
           >
-            <Text style={styles.targetIcon}>{target.icon}</Text>
+            {target.provider === 'Ionicons' ? (
+              <Ionicons 
+                name={target.iconName as any} 
+                size={28} 
+                color={selectedTarget === target.id ? COLORS.card : COLORS.text} 
+                style={styles.targetIcon}
+              />
+            ) : (
+              <Feather 
+                name={target.iconName as any} 
+                size={28} 
+                color={selectedTarget === target.id ? COLORS.card : COLORS.text} 
+                style={styles.targetIcon}
+              />
+            )}
             <Text
               style={[
                 styles.targetLabel,

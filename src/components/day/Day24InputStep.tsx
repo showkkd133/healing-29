@@ -2,7 +2,6 @@ import React from 'react'
 import {
   Text,
   TextInput,
-  TouchableOpacity,
   StyleSheet,
   ScrollView,
   KeyboardAvoidingView,
@@ -10,6 +9,7 @@ import {
 } from 'react-native'
 import Animated, { FadeIn, SlideInDown } from 'react-native-reanimated'
 import { COLORS, SPACING, BORDER_RADIUS, SHADOWS } from '@/constants/theme'
+import { ZenButton } from '@/components/ui/ZenButton'
 
 // ─── Props ─────────────────────────────────────────────────────────
 
@@ -57,16 +57,12 @@ const Day24InputStep = React.memo(function Day24InputStep({
           />
         </Animated.View>
 
-        <TouchableOpacity
-          style={[styles.primaryButton, isDisabled && styles.primaryButtonDisabled]}
+        <ZenButton
+          title="开始重写"
           onPress={onProceed}
           disabled={isDisabled}
-          activeOpacity={0.8}
-        >
-          <Text style={[styles.primaryButtonText, isDisabled && styles.primaryButtonTextDisabled]}>
-            开始重写
-          </Text>
-        </TouchableOpacity>
+          style={styles.primaryButton}
+        />
       </ScrollView>
     </KeyboardAvoidingView>
   )
@@ -113,22 +109,6 @@ const styles = StyleSheet.create({
   },
   primaryButton: {
     marginTop: SPACING['3xl'],
-    paddingVertical: 14,
-    borderRadius: BORDER_RADIUS['2xl'],
-    backgroundColor: COLORS.primary,
-    alignItems: 'center',
-    ...SHADOWS.md,
-  },
-  primaryButtonDisabled: {
-    backgroundColor: COLORS.border,
-  },
-  primaryButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.card,
-  },
-  primaryButtonTextDisabled: {
-    color: COLORS.textTertiary,
   },
 })
 

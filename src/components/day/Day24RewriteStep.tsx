@@ -2,14 +2,15 @@ import React from 'react'
 import {
   Text,
   TextInput,
-  TouchableOpacity,
   StyleSheet,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  View,
 } from 'react-native'
 import Animated, { FadeIn } from 'react-native-reanimated'
 import { COLORS, SPACING, BORDER_RADIUS, SHADOWS } from '@/constants/theme'
+import { ZenButton } from '@/components/ui/ZenButton'
 
 // ─── Props ─────────────────────────────────────────────────────────
 
@@ -59,14 +60,15 @@ const Day24RewriteStep = React.memo(function Day24RewriteStep({
         {/* Template buttons */}
         <Animated.View entering={FadeIn.delay(400).duration(300)} style={styles.templateRow}>
           {templates.map((template, index) => (
-            <TouchableOpacity
+            <ZenButton
               key={index}
+              variant="outline"
+              size="sm"
               style={styles.templateButton}
               onPress={() => onTemplatePress(template)}
-              activeOpacity={0.7}
             >
               <Text style={styles.templateText}>"{template}"</Text>
-            </TouchableOpacity>
+            </ZenButton>
           ))}
         </Animated.View>
 
@@ -82,16 +84,12 @@ const Day24RewriteStep = React.memo(function Day24RewriteStep({
           maxLength={2000}
         />
 
-        <TouchableOpacity
-          style={[styles.primaryButton, isDisabled && styles.primaryButtonDisabled]}
+        <ZenButton
+          title="查看对比"
           onPress={onProceed}
           disabled={isDisabled}
-          activeOpacity={0.8}
-        >
-          <Text style={[styles.primaryButtonText, isDisabled && styles.primaryButtonTextDisabled]}>
-            查看对比
-          </Text>
-        </TouchableOpacity>
+          style={styles.primaryButton}
+        />
       </ScrollView>
     </KeyboardAvoidingView>
   )
@@ -145,16 +143,13 @@ const styles = StyleSheet.create({
   },
   templateButton: {
     flex: 1,
-    paddingVertical: SPACING.sm,
-    paddingHorizontal: SPACING.md,
-    borderRadius: BORDER_RADIUS.md,
-    backgroundColor: COLORS.card,
-    borderWidth: 1,
-    borderColor: COLORS.border,
+    minHeight: 40,
+    paddingVertical: 0,
+    paddingHorizontal: 0,
   },
   templateText: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
+    fontSize: 11,
+    color: COLORS.primary,
     textAlign: 'center',
   },
   rewriteInput: {
@@ -169,22 +164,6 @@ const styles = StyleSheet.create({
   },
   primaryButton: {
     marginTop: SPACING['3xl'],
-    paddingVertical: 14,
-    borderRadius: BORDER_RADIUS['2xl'],
-    backgroundColor: COLORS.primary,
-    alignItems: 'center',
-    ...SHADOWS.md,
-  },
-  primaryButtonDisabled: {
-    backgroundColor: COLORS.border,
-  },
-  primaryButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.card,
-  },
-  primaryButtonTextDisabled: {
-    color: COLORS.textTertiary,
   },
 })
 

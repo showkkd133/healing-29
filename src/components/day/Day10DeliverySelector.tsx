@@ -1,8 +1,10 @@
-import React, { useCallback } from 'react'
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native'
-import Animated, { FadeIn } from 'react-native-reanimated'
-import * as Haptics from 'expo-haptics'
-import { COLORS, SPACING, BORDER_RADIUS } from '@/constants/theme'
+import React from 'react'
+import { View, TextInput, StyleSheet } from 'react-native'
+import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated'
+import { COLORS, SPACING, BORDER_RADIUS, SHADOWS } from '@/constants/theme'
+import { ZenButton } from '../ui/ZenButton'
+import { ZenTypography } from '../ui/ZenTypography'
+import { useHaptic } from '@/hooks/useHaptic'
 
 // ─── Constants ─────────────────────────────────────────────────────
 
@@ -44,34 +46,34 @@ const Day10DeliverySelector = React.memo(function Day10DeliverySelector({
   customDate,
   onCustomDateChange,
 }: Day10DeliverySelectorProps) {
+  const haptic = useHaptic();
+
+  const handleSelect = (option: DeliveryOption) => {
+    haptic.light();
+    onSelectDelivery(option);
+  };
+
   return (
     <Animated.View entering={FadeIn.delay(200).duration(500)}>
-      <Text style={styles.sectionLabel}>选择送达时间</Text>
+      <ZenTypography variant="bold" size="sm" color="text" style={styles.sectionLabel}>
+        选择送达时间
+      </ZenTypography>
       <View style={styles.optionRow}>
         {DELIVERY_OPTIONS.map((option) => (
-          <TouchableOpacity
-            key={option.id}
-            style={[
-              styles.optionButton,
-              deliveryOption === option.id && styles.optionButtonActive,
-            ]}
-            onPress={() => onSelectDelivery(option.id)}
-            activeOpacity={0.7}
-          >
-            <Text
-              style={[
-                styles.optionText,
-                deliveryOption === option.id && styles.optionTextActive,
-              ]}
-            >
-              {option.label}
-            </Text>
-          </TouchableOpacity>
+          <View key={option.id} style={styles.optionWrapper}>
+            <ZenButton
+              title={option.label}
+              variant={deliveryOption === option.id ? 'primary' : 'outline'}
+              size="sm"
+              fullWidth
+              onPress={() => handleSelect(option.id)}
+            />
+          </View>
         ))}
       </View>
 
       {deliveryOption === 'custom' && (
-        <Animated.View entering={FadeIn.duration(300)}>
+        <Animated.View entering={FadeInDown.duration(300)}>
           <TextInput
             style={styles.dateInput}
             value={customDate}
@@ -91,9 +93,6 @@ const Day10DeliverySelector = React.memo(function Day10DeliverySelector({
 
 const styles = StyleSheet.create({
   sectionLabel: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: COLORS.text,
     marginBottom: SPACING.md,
     marginTop: SPACING.xl,
   },
@@ -101,37 +100,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: SPACING.sm,
   },
-  optionButton: {
+  optionWrapper: {
     flex: 1,
-    paddingVertical: SPACING.md,
-    borderRadius: BORDER_RADIUS.lg,
-    backgroundColor: COLORS.card,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  optionButtonActive: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
-  },
-  optionText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: COLORS.text,
-  },
-  optionTextActive: {
-    color: COLORS.card,
   },
   dateInput: {
-    marginTop: SPACING.md,
+    marginTop: SPACING.lg,
     backgroundColor: COLORS.card,
     borderRadius: BORDER_RADIUS.lg,
-    paddingVertical: 12,
+    paddingVertical: 14,
     paddingHorizontal: SPACING.lg,
-    fontSize: 15,
+    fontSize: 16,
     color: COLORS.text,
     borderWidth: 1,
     borderColor: COLORS.border,
+    ...SHADOWS.sm,
   },
 })
 

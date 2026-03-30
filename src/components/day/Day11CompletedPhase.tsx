@@ -3,13 +3,14 @@
 import React from 'react'
 import { View, Text, StyleSheet } from 'react-native'
 import Animated, { FadeIn } from 'react-native-reanimated'
+import { Feather } from '@expo/vector-icons'
 import { COLORS, SPACING } from '@/constants/theme'
 
 const Day11CompletedPhase = React.memo(function Day11CompletedPhase() {
   return (
     <View style={styles.container}>
       <Animated.View entering={FadeIn.duration(800)} style={styles.content}>
-        <Text style={styles.emoji}>🌊</Text>
+        <Feather name="check-circle" size={48} color={COLORS.success} style={styles.icon} />
         <Text style={styles.text}>
           你允许自己崩溃了，也允许自己停止
         </Text>

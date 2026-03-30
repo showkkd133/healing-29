@@ -1,7 +1,9 @@
 import React from 'react'
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
+import { View, Text, StyleSheet } from 'react-native'
 import Animated, { FadeIn } from 'react-native-reanimated'
+import { Feather } from '@expo/vector-icons'
 import { COLORS, SPACING } from '@/constants/theme'
+import { ZenButton } from '@/components/ui/ZenButton'
 import { SATISFACTION_OPTIONS, REGRET_TEXT } from './Day23Types'
 
 // ─── Props ─────────────────────────────────────────────────────────
@@ -30,15 +32,17 @@ const Day23FeedbackPhase = React.memo(function Day23FeedbackPhase({
       ) : (
         <View style={styles.satisfactionRow}>
           {SATISFACTION_OPTIONS.map((opt) => (
-            <TouchableOpacity
+            <ZenButton
               key={opt.id}
+              variant="ghost"
               style={styles.satisfactionButton}
               onPress={() => onSatisfaction(opt.id)}
-              activeOpacity={0.7}
             >
-              <Text style={styles.satisfactionEmoji}>{opt.emoji}</Text>
+              <View style={styles.iconContainer}>
+                <Feather name={opt.icon as any} size={32} color={COLORS.primary} />
+              </View>
               <Text style={styles.satisfactionLabel}>{opt.label}</Text>
-            </TouchableOpacity>
+            </ZenButton>
           ))}
         </View>
       )}
@@ -62,14 +66,17 @@ const styles = StyleSheet.create({
   },
   satisfactionRow: {
     flexDirection: 'row',
-    gap: SPACING.xl,
+    gap: SPACING.md,
   },
   satisfactionButton: {
     alignItems: 'center',
-    gap: SPACING.sm,
+    paddingVertical: SPACING.lg,
+    paddingHorizontal: SPACING.md,
+    minHeight: 100,
+    width: 90,
   },
-  satisfactionEmoji: {
-    fontSize: 40,
+  iconContainer: {
+    marginBottom: SPACING.sm,
   },
   satisfactionLabel: {
     fontSize: 14,

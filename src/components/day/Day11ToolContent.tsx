@@ -2,6 +2,7 @@
 
 import React, { useMemo } from 'react'
 import { View, Text, TextInput, StyleSheet } from 'react-native'
+import { Feather } from '@expo/vector-icons'
 import { COLORS, SPACING, BORDER_RADIUS, SHADOWS } from '@/constants/theme'
 import { MOCK_SONGS } from './Day11constants'
 
@@ -10,7 +11,7 @@ import { MOCK_SONGS } from './Day11constants'
 export const PhotoViewer = React.memo(function PhotoViewer() {
   return (
     <View style={styles.placeholder}>
-      <Text style={styles.placeholderIcon}>📸</Text>
+      <Feather name="camera" size={40} color={COLORS.textTertiary} style={styles.placeholderIcon} />
       <Text style={styles.placeholderText}>此功能需要上传照片</Text>
       <Text style={styles.placeholderHint}>你可以在相册里安静地看一看</Text>
     </View>

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
+import { View, Text, Pressable, StyleSheet } from 'react-native'
 import Animated, {
   FadeIn,
   useSharedValue,
@@ -7,10 +7,14 @@ import Animated, {
   withRepeat,
   withTiming,
   withSequence,
+  withSpring,
   Easing,
   cancelAnimation,
 } from 'react-native-reanimated'
-import { COLORS, SPACING, SHADOWS } from '@/constants/theme'
+import { COLORS, SPACING, SHADOWS, BORDER_RADIUS } from '@/constants/theme'
+import { useHaptic } from '@/hooks/useHaptic'
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 // ─── Constants ─────────────────────────────────────────────────────
 
@@ -90,6 +94,37 @@ const Day1VoiceRecorder = React.memo(function Day1VoiceRecorder({
   elapsedMs,
   onRecordPress,
 }: Day1VoiceRecorderProps) {
+  const haptic = useHaptic();
+  const scale = useSharedValue(1);
+  const innerRadius = useSharedValue(isRecording ? 8 : 20);
+  const innerSize = useSharedValue(isRecording ? 32 : 40);
+
+  useEffect(() => {
+    innerRadius.value = withSpring(isRecording ? 8 : 20);
+    innerSize.value = withSpring(isRecording ? 32 : 40);
+  }, [isRecording]);
+
+  const animatedButtonStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+    backgroundColor: withTiming(isRecording ? '#FFF0F0' : COLORS.secondaryLight, { duration: 300 }),
+  }));
+
+  const animatedInnerStyle = useAnimatedStyle(() => ({
+    width: innerSize.value,
+    height: innerSize.value,
+    borderRadius: innerRadius.value,
+    backgroundColor: withTiming(isRecording ? '#E05858' : COLORS.primary, { duration: 300 }),
+  }));
+
+  const handlePressIn = () => {
+    scale.value = withSpring(0.92);
+    haptic.medium();
+  };
+
+  const handlePressOut = () => {
+    scale.value = withSpring(1);
+  };
+
   return (
     <Animated.View entering={FadeIn.duration(400)} style={styles.voiceContainer}>
       {/* Waveform */}
@@ -105,16 +140,17 @@ const Day1VoiceRecorder = React.memo(function Day1VoiceRecorder({
       </Text>
 
       {/* Record button */}
-      <TouchableOpacity
-        style={[styles.recordButton, isRecording && styles.recordButtonActive]}
+      <AnimatedPressable
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
         onPress={onRecordPress}
-        activeOpacity={0.8}
+        style={[styles.recordButton, animatedButtonStyle]}
       >
-        <View style={[styles.recordInner, isRecording && styles.recordInnerActive]} />
-      </TouchableOpacity>
+        <Animated.View style={animatedInnerStyle} />
+      </AnimatedPressable>
 
       <Text style={styles.recordHint}>
-        {isRecording ? '再次点击停止录音' : '点击开始录音'}
+        {isRecording ? '点击停止录音' : '点击开始录音'}
       </Text>
     </Animated.View>
   )
@@ -125,18 +161,19 @@ const Day1VoiceRecorder = React.memo(function Day1VoiceRecorder({
 const styles = StyleSheet.create({
   voiceContainer: {
     alignItems: 'center',
+    paddingVertical: SPACING.xl,
   },
   waveformRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     height: 60,
-    gap: 4,
+    gap: 6,
     marginBottom: SPACING.xl,
   },
   waveBar: {
     width: 4,
-    borderRadius: 2,
+    borderRadius: BORDER_RADIUS.full,
   },
   waveBarIdle: {
     backgroundColor: COLORS.border,
@@ -145,39 +182,27 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.primary,
   },
   timerText: {
-    fontSize: 15,
-    fontWeight: '400',
+    fontSize: 16,
+    fontWeight: '500',
     color: COLORS.textSecondary,
     marginBottom: SPACING['3xl'],
+    fontVariant: ['tabular-nums'],
   },
   recordButton: {
-    width: 88,
-    height: 88,
-    borderRadius: 44,
-    backgroundColor: COLORS.secondary,
+    width: 96,
+    height: 96,
+    borderRadius: 48,
     alignItems: 'center',
     justifyContent: 'center',
     ...SHADOWS.md,
-  },
-  recordButtonActive: {
-    backgroundColor: '#F9E0E0',
-  },
-  recordInner: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: COLORS.primary,
-  },
-  recordInnerActive: {
-    width: 28,
-    height: 28,
-    borderRadius: 6,
-    backgroundColor: '#E05858',
+    borderWidth: 4,
+    borderColor: COLORS.card,
   },
   recordHint: {
-    fontSize: 13,
-    color: COLORS.textSecondary,
-    marginTop: SPACING.lg,
+    fontSize: 14,
+    color: COLORS.textTertiary,
+    marginTop: SPACING.xl,
+    fontWeight: '500',
   },
 })
 

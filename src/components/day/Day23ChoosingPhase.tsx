@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
+import { View, Text, StyleSheet } from 'react-native'
 import Animated, {
   FadeIn,
   SlideInLeft,
@@ -8,6 +8,7 @@ import Animated, {
   useAnimatedStyle,
 } from 'react-native-reanimated'
 import { COLORS, SPACING, BORDER_RADIUS, SHADOWS } from '@/constants/theme'
+import { ZenButton } from '@/components/ui/ZenButton'
 import { DECISION_PAIRS, GUIDANCE_TEXT } from './Day23Types'
 import Day23ProgressBar from './Day23ProgressBar'
 
@@ -64,29 +65,27 @@ const Day23ChoosingPhase = React.memo(function Day23ChoosingPhase({
       {/* Option cards */}
       <View style={styles.optionRow}>
         <Animated.View entering={SlideInLeft.duration(300)} style={styles.optionWrapper}>
-          <TouchableOpacity
+          <ZenButton
             style={styles.optionCard}
             onPress={() => onChoice(currentPair.optionA)}
-            activeOpacity={0.7}
           >
             <Animated.Text style={[styles.optionText, blinkStyle]}>
               {currentPair.optionA}
             </Animated.Text>
-          </TouchableOpacity>
+          </ZenButton>
         </Animated.View>
 
         <Text style={styles.vsText}>VS</Text>
 
         <Animated.View entering={SlideInRight.duration(300)} style={styles.optionWrapper}>
-          <TouchableOpacity
+          <ZenButton
             style={styles.optionCard}
             onPress={() => onChoice(currentPair.optionB)}
-            activeOpacity={0.7}
           >
             <Animated.Text style={[styles.optionText, blinkStyle]}>
               {currentPair.optionB}
             </Animated.Text>
-          </TouchableOpacity>
+          </ZenButton>
         </Animated.View>
       </View>
     </>
@@ -140,11 +139,11 @@ const styles = StyleSheet.create({
     aspectRatio: 1,
     backgroundColor: COLORS.card,
     borderRadius: BORDER_RADIUS.xl,
-    alignItems: 'center',
-    justifyContent: 'center',
     borderWidth: 2,
     borderColor: COLORS.primary,
     ...SHADOWS.md,
+    padding: 0,
+    minHeight: undefined,
   },
   optionText: {
     fontSize: 28,

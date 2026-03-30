@@ -1,10 +1,12 @@
 import React from 'react'
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
+import { View, Text, StyleSheet } from 'react-native'
 import Animated, { FadeIn, SlideInUp } from 'react-native-reanimated'
+import { Feather } from '@expo/vector-icons'
 import { COLORS, SPACING, BORDER_RADIUS, SHADOWS } from '@/constants/theme'
 import { CATEGORIES } from './Day4Types'
 import type { DeclutterItem } from './Day4Types'
 import Day4AddItemForm from './Day4AddItemForm'
+import { ZenButton } from '../ui/ZenButton'
 
 interface Day4ItemListProps {
   readonly items: readonly DeclutterItem[]
@@ -34,13 +36,12 @@ const Day4ItemList = React.memo(function Day4ItemList({
     <Animated.View entering={FadeIn.delay(700).duration(400)} style={styles.section}>
       <View style={styles.header}>
         <Text style={styles.title}>收纳清单</Text>
-        <TouchableOpacity
-          style={styles.addButton}
+        <ZenButton
+          title="添加物品"
+          leftIcon="plus"
+          size="sm"
           onPress={onShowAddForm}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.addButtonText}>+ 添加物品</Text>
-        </TouchableOpacity>
+        />
       </View>
 
       {showAddForm && (
@@ -54,18 +55,26 @@ const Day4ItemList = React.memo(function Day4ItemList({
         />
       )}
 
-      {items.map((item, index) => (
-        <Animated.View
-          key={item.id}
-          entering={SlideInUp.delay(index * 50).duration(400)}
-          style={styles.itemRow}
-        >
-          <Text style={styles.itemCategory}>
-            {CATEGORIES.find((c) => c.key === item.category)?.label.slice(0, 2)}
-          </Text>
-          <Text style={styles.itemName}>{item.name}</Text>
-        </Animated.View>
-      ))}
+      {items.map((item, index) => {
+        const category = CATEGORIES.find((c) => c.key === item.category);
+        return (
+          <Animated.View
+            key={item.id}
+            entering={SlideInUp.delay(index * 50).duration(400)}
+            style={styles.itemRow}
+          >
+            {category && (
+              <Feather 
+                name={category.icon as any} 
+                size={18} 
+                color={COLORS.primary} 
+                style={styles.itemIcon} 
+              />
+            )}
+            <Text style={styles.itemName}>{item.name}</Text>
+          </Animated.View>
+        );
+      })}
 
       {items.length === 0 && (
         <Text style={styles.emptyText}>点击"添加物品"开始收纳</Text>
@@ -89,17 +98,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: COLORS.text,
   },
-  addButton: {
-    paddingVertical: SPACING.xs,
-    paddingHorizontal: SPACING.md,
-    borderRadius: BORDER_RADIUS.lg,
-    backgroundColor: COLORS.primary,
-  },
-  addButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: COLORS.card,
-  },
   itemRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -109,8 +107,7 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.sm,
     ...SHADOWS.sm,
   },
-  itemCategory: {
-    fontSize: 16,
+  itemIcon: {
     marginRight: SPACING.sm,
   },
   itemName: {

@@ -1,8 +1,9 @@
 import React from 'react'
-import { View, Text, TouchableOpacity, StyleSheet, Modal } from 'react-native'
+import { View, Text, StyleSheet, Modal } from 'react-native'
 import Animated, { SlideInDown } from 'react-native-reanimated'
 import { COLORS, SPACING, BORDER_RADIUS, SHADOWS } from '@/constants/theme'
 import { formatHour } from './Day21ChartConstants'
+import { ZenButton } from '../ui/ZenButton'
 
 interface ScorePickerProps {
   readonly visible: boolean
@@ -27,19 +28,23 @@ const Day21ScorePicker = React.memo(function Day21ScorePicker({
           <Text style={styles.hint}>选择 1-10 分</Text>
           <View style={styles.scoreGrid}>
             {SCORES.map((score) => (
-              <TouchableOpacity
+              <ZenButton
                 key={score}
-                style={styles.scoreButton}
+                title={score.toString()}
                 onPress={() => onSelect(score)}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.scoreButtonText}>{score}</Text>
-              </TouchableOpacity>
+                style={styles.scoreButton}
+                size="sm"
+                variant="outline"
+              />
             ))}
           </View>
-          <TouchableOpacity style={styles.cancel} onPress={onClose} activeOpacity={0.7}>
-            <Text style={styles.cancelText}>取消</Text>
-          </TouchableOpacity>
+          <ZenButton
+            title="取消"
+            onPress={onClose}
+            variant="ghost"
+            size="sm"
+            style={styles.cancel}
+          />
         </Animated.View>
       </View>
     </Modal>
@@ -80,25 +85,13 @@ const styles = StyleSheet.create({
   },
   scoreButton: {
     width: 48,
-    height: 48,
+    minHeight: 48,
     borderRadius: 24,
-    backgroundColor: COLORS.background,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  scoreButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.text,
+    paddingHorizontal: 0,
+    paddingVertical: 0,
   },
   cancel: {
-    paddingVertical: SPACING.sm,
-  },
-  cancelText: {
-    fontSize: 15,
-    color: COLORS.textSecondary,
+    marginTop: SPACING.sm,
   },
 })
 

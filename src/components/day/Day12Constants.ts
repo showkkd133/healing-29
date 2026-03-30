@@ -3,6 +3,8 @@
 export interface TargetOption {
   readonly id: string
   readonly icon: string
+  readonly iconName: string
+  readonly provider: 'Feather' | 'Ionicons'
   readonly label: string
 }
 
@@ -15,18 +17,19 @@ export interface MethodOption {
 export interface ReactionOption {
   readonly id: string
   readonly emoji: string
+  readonly iconName: string
   readonly label: string
 }
 
 export const TARGET_TABS: readonly TargetOption[] = [
-  { id: 'staff', icon: '👨‍🍳', label: '服务人员' },
-  { id: 'stranger', icon: '🚶', label: '陌生人' },
-  { id: 'friend', icon: '👫', label: '朋友' },
+  { id: 'staff', icon: '👨‍🍳', iconName: 'coffee', provider: 'Feather', label: '服务人员' },
+  { id: 'stranger', icon: '🚶', iconName: 'user', provider: 'Feather', label: '陌生人' },
+  { id: 'friend', icon: '👫', iconName: 'users', provider: 'Feather', label: '朋友' },
 ] as const
 
 export const INTROVERT_TARGETS: readonly TargetOption[] = [
-  { id: 'pet', icon: '🐱', label: '宠物' },
-  { id: 'plant', icon: '🌱', label: '植物' },
+  { id: 'pet', icon: '🐱', iconName: 'paw', provider: 'Ionicons', label: '宠物' },
+  { id: 'plant', icon: '🌱', iconName: 'leaf', provider: 'Ionicons', label: '植物' },
 ] as const
 
 export const METHODS: readonly MethodOption[] = [
@@ -36,8 +39,8 @@ export const METHODS: readonly MethodOption[] = [
 ] as const
 
 export const REACTIONS: readonly ReactionOption[] = [
-  { id: 'warm', emoji: '😊', label: '热情' },
-  { id: 'neutral', emoji: '😐', label: '平淡' },
-  { id: 'surprised', emoji: '😮', label: '惊讶' },
-  { id: 'none', emoji: '🤷', label: '无反应' },
+  { id: 'warm', emoji: '😊', iconName: 'smile', label: '热情' },
+  { id: 'neutral', emoji: '😐', iconName: 'meh', label: '平淡' },
+  { id: 'surprised', emoji: '😮', iconName: 'frown', label: '惊讶' },
+  { id: 'none', emoji: '🤷', iconName: 'help-circle', label: '无反应' },
 ] as const

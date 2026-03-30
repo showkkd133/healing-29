@@ -1,6 +1,7 @@
 import React from 'react'
 import { View, Text, StyleSheet } from 'react-native'
 import Animated, { FadeIn } from 'react-native-reanimated'
+import { Feather } from '@expo/vector-icons'
 import { COLORS, SPACING } from '@/constants/theme'
 import { COMPLETION_TEXT } from './Day4Types'
 
@@ -9,7 +10,7 @@ const Day4CompletedView = React.memo(function Day4CompletedView() {
   return (
     <View style={styles.container}>
       <Animated.View entering={FadeIn.duration(800)} style={styles.content}>
-        <Text style={styles.emoji}>🏠</Text>
+        <Feather name="home" size={48} color={COLORS.primary} style={styles.icon} />
         <Text style={styles.text}>{COMPLETION_TEXT}</Text>
       </Animated.View>
     </View>
@@ -25,8 +26,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  emoji: {
-    fontSize: 48,
+  icon: {
     marginBottom: SPACING.xl,
   },
   text: {

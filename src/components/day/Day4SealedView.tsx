@@ -1,7 +1,10 @@
 import React from 'react'
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
-import Animated, { FadeIn } from 'react-native-reanimated'
-import { COLORS, SPACING, BORDER_RADIUS } from '@/constants/theme'
+import { View, StyleSheet } from 'react-native'
+import Animated, { FadeIn, ZoomIn } from 'react-native-reanimated'
+import { Feather } from '@expo/vector-icons'
+import { COLORS, SPACING } from '@/constants/theme'
+import { ZenButton } from '../ui/ZenButton'
+import { ZenTypography } from '../ui/ZenTypography'
 
 interface Day4SealedViewProps {
   readonly itemCount: number
@@ -9,7 +12,10 @@ interface Day4SealedViewProps {
   readonly onComplete: () => void
 }
 
-// Shown after items are sealed into the virtual box
+/**
+ * Day4SealedView: Shown after items are sealed into the virtual box.
+ * Refined with vector icons and standardized Zen components.
+ */
 const Day4SealedView = React.memo(function Day4SealedView({
   itemCount,
   sealDate,
@@ -18,18 +24,25 @@ const Day4SealedView = React.memo(function Day4SealedView({
   return (
     <View style={styles.container}>
       <Animated.View entering={FadeIn.duration(600)} style={styles.content}>
-        <Text style={styles.emoji}>🔒</Text>
-        <Text style={styles.title}>已封存</Text>
-        <Text style={styles.info}>
+        <Animated.View entering={ZoomIn.delay(200).duration(500)} style={styles.iconContainer}>
+          <Feather name="lock" size={64} color={COLORS.primary} />
+        </Animated.View>
+        
+        <ZenTypography variant="bold" size="xl" color="text" style={styles.title}>
+          已封存
+        </ZenTypography>
+        
+        <ZenTypography variant="medium" size="base" color="textSecondary" align="center" style={styles.info}>
           {itemCount} 件物品已收好{'\n'}封存至 {sealDate}
-        </Text>
-        <TouchableOpacity
-          style={styles.button}
+        </ZenTypography>
+        
+        <ZenButton
+          title="完成今日练习"
+          variant="primary"
+          size="md"
           onPress={onComplete}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.buttonText}>完成</Text>
-        </TouchableOpacity>
+          style={styles.button}
+        />
       </Animated.View>
     </View>
   )
@@ -45,35 +58,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: SPACING['3xl'],
   },
-  emoji: {
-    fontSize: 64,
+  iconContainer: {
     marginBottom: SPACING.xl,
+    padding: SPACING.lg,
+    backgroundColor: COLORS.backgroundPositive,
+    borderRadius: 100,
   },
   title: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: COLORS.text,
     marginBottom: SPACING.md,
   },
   info: {
-    fontSize: 16,
-    color: COLORS.textSecondary,
-    textAlign: 'center',
     lineHeight: 26,
-    marginBottom: SPACING['3xl'],
+    marginBottom: SPACING['4xl'],
   },
   button: {
-    paddingVertical: 14,
-    paddingHorizontal: SPACING['3xl'],
-    borderRadius: BORDER_RADIUS['2xl'],
-    backgroundColor: COLORS.primary,
-    alignItems: 'center',
-    marginTop: SPACING.sm,
-  },
-  buttonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.card,
+    minWidth: 180,
   },
 })
 

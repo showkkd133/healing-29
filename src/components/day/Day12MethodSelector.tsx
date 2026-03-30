@@ -4,6 +4,7 @@ import React from 'react'
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
 import Animated, { SlideInDown, FadeInUp } from 'react-native-reanimated'
 import { COLORS, SPACING, BORDER_RADIUS, SHADOWS } from '@/constants/theme'
+import { useHaptic } from '@/hooks/useHaptic'
 import { METHODS } from './Day12Constants'
 
 interface Day12MethodSelectorProps {
@@ -15,6 +16,13 @@ const Day12MethodSelector = React.memo(function Day12MethodSelector({
   selectedMethod,
   onSelectMethod,
 }: Day12MethodSelectorProps) {
+  const haptic = useHaptic();
+
+  const handleSelect = (id: string) => {
+    haptic.medium();
+    onSelectMethod(id);
+  }
+
   return (
     <Animated.View entering={SlideInDown.duration(400)}>
       <Text style={styles.sectionLabel}>善意方式</Text>
@@ -29,7 +37,7 @@ const Day12MethodSelector = React.memo(function Day12MethodSelector({
                 styles.methodCard,
                 selectedMethod === method.id && styles.methodCardActive,
               ]}
-              onPress={() => onSelectMethod(method.id)}
+              onPress={() => handleSelect(method.id)}
               activeOpacity={0.7}
             >
               <Text

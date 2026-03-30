@@ -15,9 +15,9 @@ export const DECISION_PAIRS = [
 ] as const
 
 export const SATISFACTION_OPTIONS = [
-  { id: 'happy', emoji: '😊', label: '满意' },
-  { id: 'regret', emoji: '😅', label: '后悔' },
-  { id: 'neutral', emoji: '😐', label: '无所谓' },
+  { id: 'happy', icon: 'smile', label: '满意' },
+  { id: 'regret', icon: 'refresh-ccw', label: '后悔' },
+  { id: 'neutral', icon: 'minus-circle', label: '无所谓' },
 ] as const
 
 export const DECISION_TIMEOUT_MS = 10_000

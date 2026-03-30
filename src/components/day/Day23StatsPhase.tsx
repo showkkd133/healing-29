@@ -1,7 +1,9 @@
 import React from 'react'
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
+import { View, Text, StyleSheet } from 'react-native'
 import Animated, { FadeIn } from 'react-native-reanimated'
+import { Feather } from '@expo/vector-icons'
 import { COLORS, SPACING, BORDER_RADIUS, SHADOWS } from '@/constants/theme'
+import { ZenButton } from '@/components/ui/ZenButton'
 import {
   DECISION_PAIRS,
   SATISFACTION_OPTIONS,
@@ -42,30 +44,35 @@ const Day23StatsPhase = React.memo(function Day23StatsPhase({
       </View>
 
       {/* Decision history */}
-      {decisions.map((d, i) => (
-        <Animated.View
-          key={i}
-          entering={FadeIn.delay(200 + i * 100).duration(300)}
-          style={styles.historyRow}
-        >
-          <Text style={styles.historyQuestion}>
-            {DECISION_PAIRS[i % DECISION_PAIRS.length].question}
-          </Text>
-          <Text style={styles.historyChoice}>{d.choice}</Text>
-          <Text style={styles.historyTime}>{d.time}s</Text>
-          <Text style={styles.historySatisfaction}>
-            {SATISFACTION_OPTIONS.find((s) => s.id === d.satisfaction)?.emoji ?? '😐'}
-          </Text>
-        </Animated.View>
-      ))}
+      {decisions.map((d, i) => {
+        const option = SATISFACTION_OPTIONS.find((s) => s.id === d.satisfaction)
+        return (
+          <Animated.View
+            key={i}
+            entering={FadeIn.delay(200 + i * 100).duration(300)}
+            style={styles.historyRow}
+          >
+            <Text style={styles.historyQuestion}>
+              {DECISION_PAIRS[i % DECISION_PAIRS.length].question}
+            </Text>
+            <Text style={styles.historyChoice}>{d.choice}</Text>
+            <Text style={styles.historyTime}>{d.time}s</Text>
+            <View style={styles.historySatisfaction}>
+              <Feather
+                name={(option?.icon as any) ?? 'minus-circle'}
+                size={18}
+                color={option?.id === 'happy' ? COLORS.primary : COLORS.textTertiary}
+              />
+            </View>
+          </Animated.View>
+        )
+      })}
 
-      <TouchableOpacity
-        style={styles.completeButton}
+      <ZenButton
+        title="完成练习"
         onPress={onComplete}
-        activeOpacity={0.8}
-      >
-        <Text style={styles.completeButtonText}>完成练习</Text>
-      </TouchableOpacity>
+        style={styles.completeButton}
+      />
     </Animated.View>
   )
 })
@@ -139,20 +146,12 @@ const styles = StyleSheet.create({
     marginRight: SPACING.md,
   },
   historySatisfaction: {
-    fontSize: 18,
+    width: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   completeButton: {
     marginTop: SPACING['3xl'],
-    paddingVertical: 14,
-    borderRadius: BORDER_RADIUS['2xl'],
-    backgroundColor: COLORS.primary,
-    alignItems: 'center',
-    ...SHADOWS.md,
-  },
-  completeButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.card,
   },
 })
 

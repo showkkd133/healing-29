@@ -1,9 +1,11 @@
 // Day 12 – Share toggle and complete button sub-component
 
 import React from 'react'
-import { View, Text, TouchableOpacity, Switch, StyleSheet } from 'react-native'
+import { View, Text, Switch, StyleSheet } from 'react-native'
 import Animated, { FadeIn } from 'react-native-reanimated'
-import { COLORS, SPACING, BORDER_RADIUS, SHADOWS } from '@/constants/theme'
+import { COLORS, SPACING, BORDER_RADIUS } from '@/constants/theme'
+import { ZenButton } from '@/components/ui/ZenButton'
+import { useHaptic } from '@/hooks/useHaptic'
 
 interface Day12BottomSectionProps {
   readonly storyShared: boolean
@@ -18,26 +20,33 @@ const Day12BottomSection = React.memo(function Day12BottomSection({
   onToggleShare,
   onComplete,
 }: Day12BottomSectionProps) {
+  const haptic = useHaptic();
+
+  const handleToggle = (value: boolean) => {
+    haptic.light();
+    onToggleShare(value);
+  }
+
   return (
     <Animated.View entering={FadeIn.delay(400).duration(400)} style={styles.bottomSection}>
       <View style={styles.shareRow}>
         <Text style={styles.shareLabel}>匿名分享这个故事</Text>
         <Switch
           value={storyShared}
-          onValueChange={onToggleShare}
+          onValueChange={handleToggle}
           trackColor={{ false: COLORS.border, true: COLORS.primary }}
           thumbColor={COLORS.card}
         />
       </View>
 
-      <TouchableOpacity
-        style={[styles.completeButton, !canComplete && styles.completeButtonDisabled]}
+      <ZenButton
+        title="完成实验"
+        variant="primary"
+        size="lg"
         onPress={onComplete}
         disabled={!canComplete}
-        activeOpacity={0.8}
-      >
-        <Text style={styles.completeButtonText}>完成实验</Text>
-      </TouchableOpacity>
+        fullWidth
+      />
     </Animated.View>
   )
 })

@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react'
 import {
-  View, Text, ScrollView, Pressable, FlatList, Alert,
+  View, Text, ScrollView, FlatList, Alert, StyleSheet
 } from 'react-native'
 import Animated, {
   FadeIn, useSharedValue, useAnimatedStyle, withSpring,
@@ -13,12 +13,16 @@ import { useUserStore } from '@/stores/userStore'
 import { useEmotionStore } from '@/stores/emotionStore'
 import { useJourneyStore } from '@/stores/journeyStore'
 import { useBadgeStore } from '@/stores/badgeStore'
-import { BADGES, getBadgeById } from '@/constants/badges'
+import { getBadgeById } from '@/constants/badges'
 import { exportAllData } from '@/services/dataExport'
-import { IconButterfly, IconExport } from '@/components/icons'
-import { COLORS } from '@/constants/theme'
+import { IconButterfly } from '@/components/icons'
+import { COLORS, SPACING, SHADOWS, BORDER_RADIUS } from '@/constants/theme'
+import { ZenButton } from '@/components/ui/ZenButton'
+import { ZenIconButton } from '@/components/ui/ZenIconButton'
+import { ZenTypography } from '@/components/ui/ZenTypography'
+import { useHaptic } from '@/hooks/useHaptic'
 import {
-  styles, CHART_WIDTH, CHART_HEIGHT, CHART_PADDING,
+  styles as oldStyles, CHART_WIDTH, CHART_HEIGHT, CHART_PADDING,
 } from '@/components/summary/styles'
 
 const MAX_VISIBLE_BADGES = 8
@@ -39,15 +43,18 @@ function CelebrationHeader() {
   return (
     <View style={styles.celebrationContainer}>
       <View style={styles.celebrationIcon}>
-        <IconButterfly size={48} color={COLORS.accent} />
+        <IconButterfly size={56} color={COLORS.accent} />
       </View>
-      <Text style={styles.celebrationTitle}>你做到了</Text>
-      <Text style={styles.celebrationSubtitle}>29 天疗愈之旅，圆满完成</Text>
+      <ZenTypography variant="bold" size="xl" color="text" align="center" style={styles.celebrationTitle}>
+        你做到了
+      </ZenTypography>
+      <ZenTypography variant="medium" size="sm" color="textSecondary" align="center">
+        29 天疗愈之旅，圆满完成
+      </ZenTypography>
     </View>
   )
 }
 
-// Single stat item — number + label
 function StatsItem({
   value, label,
 }: {
@@ -56,8 +63,8 @@ function StatsItem({
 }) {
   return (
     <View style={styles.statsItem}>
-      <Text style={styles.statsValue}>{value}</Text>
-      <Text style={styles.statsLabel}>{label}</Text>
+      <ZenTypography variant="bold" size="lg" color="primary">{value}</ZenTypography>
+      <ZenTypography size="xs" color="textTertiary">{label}</ZenTypography>
     </View>
   )
 }
@@ -71,16 +78,15 @@ function StatsRow({
 }) {
   return (
     <View style={styles.statsRow}>
-      <StatsItem value={`${completedDays}`} label="天" />
+      <StatsItem value={`${completedDays}`} label="已完成天数" />
       <View style={styles.statsDivider} />
-      <StatsItem value={`${streakDays}`} label="天连续" />
+      <StatsItem value={`${streakDays}`} label="当前连击" />
       <View style={styles.statsDivider} />
-      <StatsItem value={`${badgeCount}`} label="枚徽章" />
+      <StatsItem value={`${badgeCount}`} label="获得徽章" />
     </View>
   )
 }
 
-// Animated data point that scales in when it first appears
 function AnimatedDataPoint({
   cx, cy, isEndpoint, color, delay,
 }: {
@@ -112,9 +118,7 @@ function AnimatedDataPoint({
   return <Animated.View style={animatedStyle} />
 }
 
-// Total animation duration for the chart drawing (ms)
 const CHART_DRAW_DURATION = 2000
-// Delay before chart animation starts (ms)
 const CHART_DRAW_DELAY = 1000
 
 function MoodChart({ data }: { readonly data: ReadonlyArray<{ day: number; score: number }> }) {
@@ -132,19 +136,14 @@ function MoodChart({ data }: { readonly data: ReadonlyArray<{ day: number; score
     }))
   }, [data])
 
-  // Progressive reveal: show one more point at each tick
   useEffect(() => {
     if (points.length === 0) return
-
-    // Start with the first point visible after delay
     const startTimer = setTimeout(() => {
       setVisibleCount(1)
-
       if (points.length <= 1) {
         setAnimationDone(true)
         return
       }
-
       const intervalMs = CHART_DRAW_DURATION / (points.length - 1)
       const interval = setInterval(() => {
         setVisibleCount((prev) => {
@@ -157,158 +156,92 @@ function MoodChart({ data }: { readonly data: ReadonlyArray<{ day: number; score
           return next
         })
       }, intervalMs)
-
-      // Cleanup interval on unmount
       return () => clearInterval(interval)
     }, CHART_DRAW_DELAY)
-
     return () => clearTimeout(startTimer)
   }, [points.length])
 
   if (data.length === 0) {
     return (
       <View style={styles.chartContainer}>
-        <Text style={styles.chartTitle}>情绪变化曲线</Text>
-        <Text style={styles.emptyText}>暂无情绪数据</Text>
+        <ZenTypography variant="bold" size="md" color="text" style={styles.chartTitle}>情绪变化曲线</ZenTypography>
+        <ZenTypography size="sm" color="textTertiary" align="center">暂无情绪数据</ZenTypography>
       </View>
     )
   }
 
   const visiblePoints = points.slice(0, visibleCount)
   const polyline = visiblePoints.map((p) => `${p.x},${p.y}`).join(' ')
-
   const first = points[0]
   const last = points[points.length - 1]
 
   return (
     <View style={styles.chartContainer}>
-      <Text style={styles.chartTitle}>成长轨迹回放</Text>
+      <ZenTypography variant="bold" size="md" color="text" style={styles.chartTitle}>成长轨迹回放</ZenTypography>
       <View>
         <Svg width={CHART_WIDTH} height={CHART_HEIGHT}>
-          {/* Axis labels — always visible */}
-          <SvgText
-            x={CHART_PADDING.left}
-            y={CHART_HEIGHT - 4}
-            fontSize={10}
-            fill={COLORS.textTertiary}
-            textAnchor="start"
-          >
-            Day 1
-          </SvgText>
-          <SvgText
-            x={CHART_WIDTH - CHART_PADDING.right}
-            y={CHART_HEIGHT - 4}
-            fontSize={10}
-            fill={COLORS.textTertiary}
-            textAnchor="end"
-          >
-            Day 29
-          </SvgText>
-
-          {/* Baseline grid line */}
-          <Line
-            x1={CHART_PADDING.left}
-            y1={CHART_HEIGHT - CHART_PADDING.bottom}
-            x2={CHART_WIDTH - CHART_PADDING.right}
-            y2={CHART_HEIGHT - CHART_PADDING.bottom}
-            stroke={COLORS.border}
-            strokeWidth={0.5}
-          />
-
-          {/* Animated polyline — only rendered points so far */}
+          <SvgText x={CHART_PADDING.left} y={CHART_HEIGHT - 4} fontSize={10} fill={COLORS.textTertiary} textAnchor="start">Day 1</SvgText>
+          <SvgText x={CHART_WIDTH - CHART_PADDING.right} y={CHART_HEIGHT - 4} fontSize={10} fill={COLORS.textTertiary} textAnchor="end">Day 29</SvgText>
+          <Line x1={CHART_PADDING.left} y1={CHART_HEIGHT - CHART_PADDING.bottom} x2={CHART_WIDTH - CHART_PADDING.right} y2={CHART_HEIGHT - CHART_PADDING.bottom} stroke={COLORS.border} strokeWidth={0.5} />
           {visiblePoints.length >= 2 && (
-            <Polyline
-              points={polyline}
-              fill="none"
-              stroke={COLORS.primary}
-              strokeWidth={2}
-              strokeLinejoin="round"
-              strokeLinecap="round"
-            />
+            <Polyline points={polyline} fill="none" stroke={COLORS.primary} strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round" />
           )}
-
-          {/* Endpoint labels — appear after animation completes */}
           {animationDone && (
             <>
-              <SvgText
-                x={first.x + 8}
-                y={first.y - 8}
-                fontSize={11}
-                fill={COLORS.textSecondary}
-                textAnchor="start"
-              >
-                起点 {first.score}
-              </SvgText>
-              <SvgText
-                x={last.x - 8}
-                y={last.y - 8}
-                fontSize={11}
-                fill={COLORS.textSecondary}
-                textAnchor="end"
-              >
-                终点 {last.score}
-              </SvgText>
+              <SvgText x={first.x + 8} y={first.y - 8} fontSize={11} fill={COLORS.textSecondary} textAnchor="start">起点 {first.score}</SvgText>
+              <SvgText x={last.x - 8} y={last.y - 8} fontSize={11} fill={COLORS.textSecondary} textAnchor="end">终点 {last.score}</SvgText>
             </>
           )}
         </Svg>
-
-        {/* Animated data point circles (overlaid via absolute positioning) */}
         {visiblePoints.map((p, i) => {
           const isFirst = i === 0
           const isLast = i === points.length - 1 && animationDone
-          const isEndpoint = isFirst || isLast
-          const color = isFirst
-            ? COLORS.secondary
-            : isLast
-              ? COLORS.accent
-              : COLORS.primary
           return (
             <AnimatedDataPoint
               key={`pt-${data[i].day}`}
               cx={p.x}
               cy={p.y}
-              isEndpoint={isEndpoint}
-              color={color}
+              isEndpoint={isFirst || isLast}
+              color={isFirst ? COLORS.secondary : isLast ? COLORS.accent : COLORS.primary}
               delay={0}
             />
           )
         })}
       </View>
-
-      {/* Journey arrow label — fades in after drawing completes */}
       {animationDone && (
-        <Animated.View
-          entering={FadeIn.duration(400)}
-          style={styles.journeyArrowContainer}
-        >
-          <Text style={styles.journeyArrowText}>
-            起点 → 终点
-          </Text>
+        <Animated.View entering={FadeIn.duration(400)} style={styles.journeyArrowContainer}>
+          <ZenTypography size="xs" color="textTertiary">起点 → 终点</ZenTypography>
         </Animated.View>
       )}
     </View>
   )
 }
 
-function BadgeItem({ emoji, name }: { readonly emoji: string; readonly name: string }) {
+function BadgeItem({ icon, provider, name }: { readonly icon: string; readonly provider?: any; readonly name: string }) {
   return (
     <View style={styles.badgeItem}>
-      <Text style={styles.badgeEmoji}>{emoji}</Text>
-      <Text style={styles.badgeName} numberOfLines={1}>{name}</Text>
+      <ZenIconButton
+        icon={icon}
+        provider={provider}
+        size={64}
+        iconSize={32}
+        color={COLORS.primary}
+        backgroundColor={COLORS.backgroundPositive}
+        style={styles.badgeIcon}
+      />
+      <ZenTypography variant="medium" size="xs" color="textSecondary" numberOfLines={1} style={styles.badgeName}>
+        {name}
+      </ZenTypography>
     </View>
   )
 }
 
 function BadgeList({ earnedBadges }: { readonly earnedBadges: ReadonlyArray<{ badgeId: string }> }) {
   const router = useRouter()
+  const haptic = useHaptic();
 
   const visibleBadges = useMemo(() => {
-    const resolved = earnedBadges.map((eb) => {
-      const badge = getBadgeById(eb.badgeId)
-      const fallback = BADGES.find((b) => b.id === eb.badgeId)
-      return badge ?? fallback
-    }).filter(Boolean) as ReadonlyArray<{ icon: string; name: string; id: string }>
-    return resolved.slice(0, MAX_VISIBLE_BADGES)
+    return earnedBadges.map((eb) => getBadgeById(eb.badgeId)).filter(Boolean).slice(0, MAX_VISIBLE_BADGES);
   }, [earnedBadges])
 
   const overflow = earnedBadges.length - MAX_VISIBLE_BADGES
@@ -317,18 +250,31 @@ function BadgeList({ earnedBadges }: { readonly earnedBadges: ReadonlyArray<{ ba
 
   return (
     <View style={styles.badgeSection}>
-      <Text style={styles.sectionTitle}>获得的徽章</Text>
+      <ZenTypography variant="bold" size="md" color="text" style={styles.sectionTitle}>获得的徽章</ZenTypography>
       <FlatList
         horizontal
         data={visibleBadges}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <BadgeItem emoji={item.icon} name={item.name} />}
+        keyExtractor={(item) => item!.id}
+        renderItem={({ item }) => (
+          <BadgeItem icon={item!.icon} provider={item!.iconProvider as any} name={item!.name} />
+        )}
         showsHorizontalScrollIndicator={false}
         ListFooterComponent={
           overflow > 0 ? (
-            <Pressable style={styles.badgeOverflow} onPress={() => router.push('/badges')}>
-              <Text style={styles.badgeOverflowText}>+{overflow}</Text>
-            </Pressable>
+            <View style={styles.overflowWrapper}>
+              <ZenIconButton
+                icon="plus"
+                size={64}
+                iconSize={24}
+                backgroundColor={COLORS.borderLight}
+                color={COLORS.textSecondary}
+                onPress={() => {
+                  haptic.light();
+                  router.push('/badges');
+                }}
+              />
+              <ZenTypography size="xs" color="textTertiary" style={styles.badgeName}>更多 {overflow}</ZenTypography>
+            </View>
           ) : null
         }
         contentContainerStyle={styles.badgeListContent}
@@ -341,7 +287,9 @@ function EncouragementBlock({ direction }: { readonly direction: string }) {
   const text = ENCOURAGEMENT[direction] ?? ENCOURAGEMENT.improving
   return (
     <View style={styles.encouragementContainer}>
-      <Text style={styles.encouragementText}>{text}</Text>
+      <ZenTypography variant="medium" size="sm" color="primary" align="center" style={styles.encouragementText}>
+        {text}
+      </ZenTypography>
     </View>
   )
 }
@@ -349,15 +297,23 @@ function EncouragementBlock({ direction }: { readonly direction: string }) {
 function ActionButtons({ onExport, onGoHome }: { readonly onExport: () => void; readonly onGoHome: () => void }) {
   return (
     <View style={styles.actionContainer}>
-      {/* Primary button on top */}
-      <Pressable style={styles.primaryButton} onPress={onGoHome}>
-        <Text style={styles.primaryButtonText}>返回首页</Text>
-      </Pressable>
-      {/* Ghost button below */}
-      <Pressable style={styles.ghostButton} onPress={onExport}>
-        <IconExport size={18} color={COLORS.primary} />
-        <Text style={styles.ghostButtonText}>导出旅程报告</Text>
-      </Pressable>
+      <ZenButton
+        title="返回首页"
+        variant="primary"
+        size="lg"
+        fullWidth
+        onPress={onGoHome}
+        style={styles.primaryButton}
+      />
+      <ZenButton
+        title="导出旅程报告"
+        variant="ghost"
+        size="md"
+        fullWidth
+        leftIcon="share"
+        onPress={onExport}
+        style={styles.ghostButton}
+      />
     </View>
   )
 }
@@ -393,31 +349,126 @@ export default function SummaryScreen() {
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Celebration */}
         <Animated.View entering={FadeIn.duration(300)}>
           <CelebrationHeader />
         </Animated.View>
-        {/* Stats */}
-        <Animated.View entering={FadeIn.delay(STAGGER_DELAY).duration(300)}>
+        <Animated.View entering={FadeIn.delay(STAGGER_DELAY).duration(400)}>
           <StatsRow completedDays={completedDays} streakDays={streakDays} badgeCount={earnedBadges.length} />
         </Animated.View>
-        {/* Mood chart */}
-        <Animated.View entering={FadeIn.delay(STAGGER_DELAY * 2).duration(300)}>
+        <Animated.View entering={FadeIn.delay(STAGGER_DELAY * 2).duration(400)}>
           <MoodChart data={scoreHistory} />
         </Animated.View>
-        {/* Badge list */}
-        <Animated.View entering={FadeIn.delay(STAGGER_DELAY * 3).duration(300)}>
+        <Animated.View entering={FadeIn.delay(STAGGER_DELAY * 3).duration(400)}>
           <BadgeList earnedBadges={earnedBadges} />
         </Animated.View>
-        {/* Encouragement */}
-        <Animated.View entering={FadeIn.delay(STAGGER_DELAY * 4).duration(300)}>
+        <Animated.View entering={FadeIn.delay(STAGGER_DELAY * 4).duration(400)}>
           <EncouragementBlock direction={trend.direction} />
         </Animated.View>
-        {/* Actions */}
-        <Animated.View entering={FadeIn.delay(STAGGER_DELAY * 5).duration(300)}>
+        <Animated.View entering={FadeIn.delay(STAGGER_DELAY * 5).duration(400)}>
           <ActionButtons onExport={handleExport} onGoHome={handleGoHome} />
         </Animated.View>
       </ScrollView>
     </View>
   )
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
+  scrollContent: {
+    paddingBottom: SPACING['6xl'],
+  },
+  celebrationContainer: {
+    paddingVertical: SPACING['4xl'],
+    alignItems: 'center',
+  },
+  celebrationIcon: {
+    marginBottom: SPACING.lg,
+  },
+  celebrationTitle: {
+    letterSpacing: 2,
+    marginBottom: SPACING.xs,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingHorizontal: SPACING.xl,
+    paddingVertical: SPACING.xl,
+    backgroundColor: COLORS.card,
+    marginHorizontal: SPACING.xl,
+    borderRadius: BORDER_RADIUS.xl,
+    ...SHADOWS.md,
+  },
+  statsItem: {
+    alignItems: 'center',
+  },
+  statsDivider: {
+    width: 1,
+    height: '60%',
+    backgroundColor: COLORS.borderLight,
+    alignSelf: 'center',
+  },
+  chartContainer: {
+    marginTop: SPACING['3xl'],
+    paddingHorizontal: SPACING.xl,
+  },
+  chartTitle: {
+    marginBottom: SPACING.lg,
+  },
+  journeyArrowContainer: {
+    alignItems: 'center',
+    marginTop: SPACING.sm,
+  },
+  badgeSection: {
+    marginTop: SPACING['4xl'],
+  },
+  sectionTitle: {
+    paddingHorizontal: SPACING.xl,
+    marginBottom: SPACING.lg,
+  },
+  badgeListContent: {
+    paddingHorizontal: SPACING.xl,
+  },
+  badgeItem: {
+    alignItems: 'center',
+    marginRight: SPACING.lg,
+    width: 72,
+  },
+  badgeIcon: {
+    ...SHADOWS.sm,
+  },
+  badgeName: {
+    marginTop: SPACING.xs,
+    width: '100%',
+    textAlign: 'center',
+  },
+  overflowWrapper: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  encouragementContainer: {
+    marginTop: SPACING['4xl'],
+    paddingHorizontal: SPACING['3xl'],
+    paddingVertical: SPACING.xl,
+    backgroundColor: COLORS.backgroundPositive,
+    marginHorizontal: SPACING.xl,
+    borderRadius: BORDER_RADIUS.lg,
+  },
+  encouragementText: {
+    lineHeight: 24,
+    fontStyle: 'italic',
+  },
+  actionContainer: {
+    marginTop: SPACING['4xl'],
+    paddingHorizontal: SPACING.xl,
+    gap: SPACING.md,
+  },
+  primaryButton: {
+    ...SHADOWS.md,
+  },
+  ghostButton: {
+    marginTop: SPACING.xs,
+  },
+})

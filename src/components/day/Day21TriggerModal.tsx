@@ -1,7 +1,8 @@
 import React from 'react'
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Modal } from 'react-native'
+import { View, Text, TextInput, StyleSheet, Modal } from 'react-native'
 import Animated, { SlideInDown } from 'react-native-reanimated'
 import { COLORS, SPACING, BORDER_RADIUS, SHADOWS } from '@/constants/theme'
+import { ZenButton } from '../ui/ZenButton'
 
 interface Day21TriggerModalProps {
   readonly visible: boolean
@@ -33,12 +34,18 @@ const Day21TriggerModal = React.memo(function Day21TriggerModal({
             autoFocus
           />
           <View style={styles.actions}>
-            <TouchableOpacity style={styles.cancelButton} onPress={onClose} activeOpacity={0.7}>
-              <Text style={styles.cancelText}>取消</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.confirmButton} onPress={onSubmit} activeOpacity={0.8}>
-              <Text style={styles.confirmText}>保存</Text>
-            </TouchableOpacity>
+            <ZenButton
+              title="取消"
+              onPress={onClose}
+              variant="ghost"
+              size="sm"
+            />
+            <ZenButton
+              title="保存"
+              onPress={onSubmit}
+              variant="primary"
+              size="sm"
+            />
           </View>
         </Animated.View>
       </View>
@@ -78,25 +85,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'flex-end',
     gap: SPACING.md,
-  },
-  cancelButton: {
-    paddingVertical: SPACING.sm,
-    paddingHorizontal: SPACING.lg,
-  },
-  cancelText: {
-    fontSize: 15,
-    color: COLORS.textSecondary,
-  },
-  confirmButton: {
-    paddingVertical: SPACING.sm,
-    paddingHorizontal: SPACING.xl,
-    borderRadius: BORDER_RADIUS.lg,
-    backgroundColor: COLORS.primary,
-  },
-  confirmText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: COLORS.card,
   },
 })
 

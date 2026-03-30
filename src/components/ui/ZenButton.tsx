@@ -1,12 +1,12 @@
 import React from 'react';
-import { TouchableOpacity, StyleSheet, ViewStyle, Pressable, PressableProps } from 'react-native';
+import { TouchableOpacity, StyleSheet, ViewStyle, Pressable, PressableProps, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { 
   useSharedValue, 
   useAnimatedStyle, 
   withSpring, 
-  runOnJS 
 } from 'react-native-reanimated';
+import { Feather } from '@expo/vector-icons';
 import { COLORS, GRADIENTS, TYPOGRAPHY, SPACING } from '@/constants/theme';
 import { useHaptic } from '@/hooks/useHaptic';
 import { ZenTypography } from './ZenTypography';
@@ -15,12 +15,14 @@ const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 interface ZenButtonProps extends Omit<PressableProps, 'style'> {
   title?: string;
-  variant?: 'primary' | 'ghost' | 'outline';
-  size?: 'sm' | 'md' | 'lg';
+  variant?: 'primary' | 'ghost' | 'outline' | 'hero';
+  size?: 'sm' | 'md' | 'lg' | 'xl';
   fullWidth?: boolean;
   onPress?: () => void;
   style?: ViewStyle;
   children?: React.ReactNode;
+  leftIcon?: keyof typeof Feather.glyphMap;
+  rightIcon?: keyof typeof Feather.glyphMap;
 }
 
 /**
@@ -36,6 +38,8 @@ export const ZenButton: React.FC<ZenButtonProps> = ({
   style,
   disabled,
   children,
+  leftIcon,
+  rightIcon,
   ...rest
 }) => {
   const haptic = useHaptic();
@@ -46,7 +50,8 @@ export const ZenButton: React.FC<ZenButtonProps> = ({
   }));
 
   const handlePressIn = () => {
-    scale.value = withSpring(0.98, { damping: 20, stiffness: 300 });
+    if (disabled) return;
+    scale.value = withSpring(variant === 'hero' ? 0.94 : 0.97, { damping: 20, stiffness: 300 });
     haptic.light();
   };
 
@@ -57,20 +62,32 @@ export const ZenButton: React.FC<ZenButtonProps> = ({
   const renderContent = () => {
     if (children) return children;
 
-    const textVariant = variant === 'primary' ? 'bold' : 'medium';
-    const textColor = variant === 'primary' ? 'white' : 'primary';
-    const textSize = size === 'sm' ? 'sm' : size === 'md' ? 'base' : 'md';
+    const isHero = variant === 'hero';
+    const textVariant = (variant === 'primary' || isHero) ? 'bold' : 'medium';
+    const textColor = (variant === 'primary' || isHero) ? 'white' : 'primary';
+    const textSize = size === 'sm' ? 'sm' : size === 'md' ? 'base' : size === 'lg' ? 'md' : 'lg';
+    const iconSize = size === 'sm' ? 16 : size === 'md' ? 18 : 22;
+    const colorValue = (variant === 'primary' || isHero) ? COLORS.white : COLORS.primary;
 
     return (
-      <ZenTypography
-        variant={textVariant}
-        size={textSize}
-        color={textColor}
-        align="center"
-        style={styles.text}
-      >
-        {title}
-      </ZenTypography>
+      <View style={styles.contentRow}>
+        {leftIcon && (
+          <Feather name={leftIcon} size={iconSize} color={colorValue} style={styles.leftIcon} />
+        )}
+        <ZenTypography
+          variant={textVariant}
+          size={textSize}
+          color={textColor}
+          align="center"
+          type={isHero ? 'serif' : 'sans'}
+          style={styles.text}
+        >
+          {title}
+        </ZenTypography>
+        {rightIcon && (
+          <Feather name={rightIcon} size={iconSize} color={colorValue} style={styles.rightIcon} />
+        )}
+      </View>
     );
   };
 
@@ -80,11 +97,16 @@ export const ZenButton: React.FC<ZenButtonProps> = ({
     fullWidth && styles.fullWidth,
     variant === 'ghost' && styles.ghost,
     variant === 'outline' && styles.outline,
+    variant === 'hero' && styles.hero,
     disabled && styles.disabled,
     style,
   ];
 
-  if (variant === 'primary') {
+  if (variant === 'primary' || variant === 'hero') {
+    const gradientColors = variant === 'hero' 
+      ? [COLORS.primary, COLORS.accent] 
+      : GRADIENTS.button;
+
     return (
       <AnimatedPressable
         onPressIn={handlePressIn}
@@ -95,7 +117,7 @@ export const ZenButton: React.FC<ZenButtonProps> = ({
         {...rest}
       >
         <LinearGradient
-          colors={GRADIENTS.button as unknown as [string, string, ...string[]]}
+          colors={gradientColors as unknown as [string, string, ...string[]]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={[StyleSheet.absoluteFill, styles.gradient]}
@@ -127,6 +149,11 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     position: 'relative',
   },
+  contentRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   sm: {
     paddingVertical: SPACING.sm,
     paddingHorizontal: SPACING.lg,
@@ -141,6 +168,12 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.lg,
     paddingHorizontal: SPACING['3xl'],
     minHeight: 64,
+  },
+  xl: {
+    paddingVertical: SPACING.xl,
+    paddingHorizontal: SPACING['4xl'],
+    minHeight: 84,
+    borderRadius: 42,
   },
   fullWidth: {
     alignSelf: 'stretch',
@@ -157,10 +190,27 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.primary,
   },
+  hero: {
+    borderRadius: 42,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 8,
+  },
   disabled: {
     opacity: 0.5,
   },
   text: {
     zIndex: 1,
   },
+  leftIcon: {
+    marginRight: SPACING.sm,
+    zIndex: 1,
+  },
+  rightIcon: {
+    marginLeft: SPACING.sm,
+    zIndex: 1,
+  },
 });
+

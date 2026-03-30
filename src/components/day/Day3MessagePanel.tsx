@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react'
-import { Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native'
+import { View, Text, TextInput, StyleSheet } from 'react-native'
 import Animated, {
   FadeIn,
   FadeInDown,
@@ -7,7 +7,9 @@ import Animated, {
 } from 'react-native-reanimated'
 import * as Haptics from 'expo-haptics'
 import * as Clipboard from 'expo-clipboard'
+import { Feather } from '@expo/vector-icons'
 import { COLORS, SPACING, BORDER_RADIUS, SHADOWS } from '@/constants/theme'
+import { ZenButton } from '../ui/ZenButton'
 import { MESSAGE_TEMPLATES } from './Day3Constants'
 
 // ─── Props ─────────────────────────────────────────────────────────
@@ -55,7 +57,7 @@ const Day3MessagePanel = React.memo(function Day3MessagePanel({
   if (finished) {
     return (
       <Animated.View entering={FadeIn.duration(800)} style={styles.finishContainer}>
-        <Text style={styles.finishEmoji}>💌</Text>
+        <Feather name="mail" size={48} color={COLORS.primary} style={styles.finishIcon} />
         <Text style={styles.finishText}>消息已发送，TA会懂的</Text>
       </Animated.View>
     )
@@ -68,27 +70,31 @@ const Day3MessagePanel = React.memo(function Day3MessagePanel({
       {/* Template cards */}
       {MESSAGE_TEMPLATES.map((template, index) => (
         <Animated.View key={template.id} entering={SlideInRight.delay(index * 100).duration(400)}>
-          <TouchableOpacity
+          <ZenButton
+            variant="ghost"
             style={[styles.templateCard, selectedId === template.id && styles.templateCardActive]}
             onPress={() => onSelectedIdChange(template.id)}
-            activeOpacity={0.8}
           >
-            <Text style={styles.templateNumber}>#{template.id}</Text>
-            <Text style={styles.templateText}>{template.text}</Text>
-          </TouchableOpacity>
+            <View style={styles.templateContent}>
+              <Text style={styles.templateNumber}>#{template.id}</Text>
+              <Text style={styles.templateText}>{template.text}</Text>
+            </View>
+          </ZenButton>
         </Animated.View>
       ))}
 
       {/* Custom input option */}
       <Animated.View entering={SlideInRight.delay(200).duration(400)}>
-        <TouchableOpacity
+        <ZenButton
+          variant="ghost"
           style={[styles.templateCard, selectedId === -1 && styles.templateCardActive]}
           onPress={() => onSelectedIdChange(-1)}
-          activeOpacity={0.8}
         >
-          <Text style={styles.templateNumber}>#3</Text>
-          <Text style={styles.templateText}>自己写一段...</Text>
-        </TouchableOpacity>
+          <View style={styles.templateContent}>
+            <Text style={styles.templateNumber}>#3</Text>
+            <Text style={styles.templateText}>自己写一段...</Text>
+          </View>
+        </ZenButton>
       </Animated.View>
 
       {selectedId === -1 && (
@@ -108,23 +114,20 @@ const Day3MessagePanel = React.memo(function Day3MessagePanel({
       {/* Action buttons */}
       {activeText.length > 0 && (
         <Animated.View entering={FadeIn.duration(300)} style={styles.actionRow}>
-          <TouchableOpacity
-            style={[styles.actionButton, styles.copyButton]}
+          <ZenButton
+            title={copied ? '已复制' : '一键复制'}
+            leftIcon={copied ? 'check' : 'copy'}
             onPress={handleCopy}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.copyButtonText}>
-              {copied ? '已复制 ✓' : '一键复制'}
-            </Text>
-          </TouchableOpacity>
+            variant="primary"
+            style={styles.flexButton}
+          />
           {copied && (
-            <TouchableOpacity
-              style={[styles.actionButton, styles.doneButton]}
+            <ZenButton
+              title="已发送给TA"
               onPress={handleFinish}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.doneButtonText}>已发送给TA</Text>
-            </TouchableOpacity>
+              variant="hero"
+              style={styles.flexButton}
+            />
           )}
         </Animated.View>
       )}
@@ -148,12 +151,11 @@ const styles = StyleSheet.create({
 
   // Message templates
   templateCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
     backgroundColor: COLORS.card,
     borderRadius: BORDER_RADIUS.lg,
     padding: SPACING.lg,
     marginBottom: SPACING.sm,
+    height: 'auto',
     borderWidth: 1.5,
     borderColor: 'transparent',
     ...SHADOWS.sm,
@@ -161,6 +163,11 @@ const styles = StyleSheet.create({
   templateCardActive: {
     borderColor: COLORS.primary,
     backgroundColor: '#F0F5FA',
+  },
+  templateContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
   },
   templateNumber: {
     fontSize: 13,
@@ -174,6 +181,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: COLORS.text,
     lineHeight: 22,
+    textAlign: 'left',
   },
 
   // Custom input
@@ -195,27 +203,8 @@ const styles = StyleSheet.create({
     gap: SPACING.md,
     marginTop: SPACING.xl,
   },
-  actionButton: {
+  flexButton: {
     flex: 1,
-    paddingVertical: 14,
-    borderRadius: BORDER_RADIUS['2xl'],
-    alignItems: 'center',
-  },
-  copyButton: {
-    backgroundColor: COLORS.primary,
-  },
-  copyButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.card,
-  },
-  doneButton: {
-    backgroundColor: COLORS.accent,
-  },
-  doneButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.card,
   },
 
   // Finish state
@@ -224,8 +213,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  finishEmoji: {
-    fontSize: 48,
+  finishIcon: {
     marginBottom: SPACING.xl,
   },
   finishText: {

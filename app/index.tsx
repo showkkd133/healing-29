@@ -1,19 +1,24 @@
-import { useState, useCallback, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import {
   View,
   StyleSheet,
   ScrollView,
   Dimensions,
+  StatusBar,
+  Text,
+  Pressable,
 } from 'react-native'
 import { useRouter } from 'expo-router'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context'
 import { LinearGradient } from 'expo-linear-gradient'
+import Svg, { Circle, Defs, RadialGradient as SvgRadialGradient, Stop, Path } from 'react-native-svg'
 import Animated, {
   FadeIn,
   FadeInDown,
+  FadeInUp,
   useSharedValue,
   useAnimatedStyle,
-  withTiming,
+  withSpring,
 } from 'react-native-reanimated'
 import { useUserStore } from '@/stores/userStore'
 import { useEmotionStore } from '@/stores/emotionStore'
@@ -26,12 +31,74 @@ import { getStageByDay } from '@/constants/stages'
 import { DAILY_QUOTES } from '@/constants/quotes'
 import WelcomeOverlay from '@/components/home/WelcomeOverlay'
 import WeatherParticles from '@/components/home/WeatherParticles'
-import { IconBadge, IconSettings } from '@/components/icons'
-import { ZenButton, ZenTypography } from '@/components/ui'
+import { IconBadge, IconSettings, IconCheck } from '@/components/icons'
+import { ZenButton, ZenTypography, ZenCard } from '@/components/ui'
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window')
-const JOURNEY_EXPANDED_HEIGHT = 450
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window')
 
+/**
+ * MoodMiniChart: A very minimalist trend line for the last few days.
+ * Fashionable and clean.
+ */
+function MoodMiniChart({ scores, color }: { scores: number[], color: string }) {
+  if (scores.length < 2) return null
+  const width = 100
+  const height = 40
+  const max = 10
+  const min = 0
+  
+  const points = scores.slice(-5).map((s, i) => {
+    const x = (i / (Math.min(scores.length, 5) - 1)) * width
+    const y = height - ((s - min) / (max - min)) * height
+    return `${x},${y}`
+  }).join(' ')
+
+  return (
+    <View style={styles.miniChartContainer}>
+      <Svg width={width} height={height}>
+        <Path
+          d={`M ${points}`}
+          fill="none"
+          stroke={color}
+          strokeWidth={2}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </Svg>
+      <Text style={styles.miniChartLabel}>MOOD TREND</Text>
+    </View>
+  )
+}
+
+/**
+ * ZenAura: Asymmetric organic light.
+ */
+function ZenAura({ color, size, duration }: { color: string, size: number, duration: number }) {
+  return (
+    <BreathingView 
+      duration={duration} 
+      range={[0.92, 1.1]} 
+      opacityRange={[0.3, 0.6]}
+      style={{ width: size, height: size, position: 'absolute' }}
+    >
+      <Svg width={size} height={size}>
+        <Defs>
+          <SvgRadialGradient id="auraGradient" cx="50%" cy="50%" rx="50%" ry="50%">
+            <Stop offset="0%" stopColor={color} stopOpacity="0.5" />
+            <Stop offset="60%" stopColor={color} stopOpacity="0.1" />
+            <Stop offset="100%" stopColor={color} stopOpacity="0" />
+          </SvgRadialGradient>
+        </Defs>
+        <Circle cx={size/2} cy={size/2} r={size/2} fill="url(#auraGradient)" />
+      </Svg>
+    </BreathingView>
+  )
+}
+
+/**
+ * HomeScreen: Re-re-designed with "High-Fashion Editorial" meets "Zen Dashboard".
+ * Focuses on asymmetry, massive white space, and integrated data.
+ */
 export default function HomeScreen() {
   const router = useRouter()
   const insets = useSafeAreaInsets()
@@ -40,350 +107,199 @@ export default function HomeScreen() {
   const scoreHistory = useEmotionStore((s) => s.getScoreHistory())
   const dailyLogs = useJourneyStore((s) => s.dailyLogs)
   const completedDays = Object.keys(dailyLogs).map(Number)
-
   const earnedCount = useBadgeStore((s) => s.earnedBadges.length)
 
-  const [justCompleted, setJustCompleted] = useState<number | undefined>()
-  const prevCompletedCountRef = useRef(completedDays.length)
-
-  useEffect(() => {
-    if (completedDays.length > prevCompletedCountRef.current) {
-      const newest = Math.max(...completedDays)
-      setJustCompleted(newest)
-      const timer = setTimeout(() => setJustCompleted(undefined), 1500)
-      return () => clearTimeout(timer)
-    }
-    prevCompletedCountRef.current = completedDays.length
-  }, [completedDays])
-
   const isFirstTime = userId === null
-  const moods = scoreHistory.length > 0
-    ? scoreHistory.map((h) => h.score as number)
-    : []
-
-  const avgMood = moods.length > 0
-    ? Math.round(moods.reduce((a, b) => a + b, 0) / moods.length)
-    : 0
+  const moods = scoreHistory.length > 0 ? scoreHistory.map((h) => h.score as number) : []
+  const avgMood = moods.length > 0 ? Math.round(moods.reduce((a, b) => a + b, 0) / moods.length) : 0
 
   const stage = getStageByDay(currentDay)
+  const stageColor = stage?.color || COLORS.primary
+  const stageGradient = (GRADIENTS as any)[stage?.id] || GRADIENTS.healing
 
-  const [journeyExpanded, setJourneyExpanded] = useState(false)
-  const journeyHeight = useSharedValue(0)
-
-  const animatedJourneyStyle = useAnimatedStyle(() => ({
-    height: journeyHeight.value === 0 ? 0 : journeyHeight.value,
-    overflow: 'hidden' as const,
-    opacity: journeyHeight.value === 0 ? 0 : 1,
-  }))
-
-  const toggleJourney = useCallback(() => {
-    setJourneyExpanded((prev) => {
-      const next = !prev
-      journeyHeight.value = withTiming(
-        next ? JOURNEY_EXPANDED_HEIGHT : 0,
-        { duration: 500 },
-      )
-      return next
-    })
-  }, [journeyHeight])
-
-  const handleDismissWelcome = () => {
-    initUser()
-  }
+  const isTodayCompleted = dailyLogs[currentDay] !== undefined
 
   return (
     <View style={styles.container}>
-      <LinearGradient
-        colors={GRADIENTS.healing as any}
-        style={StyleSheet.absoluteFill}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-      />
+      <StatusBar barStyle="dark-content" />
       
-      <WeatherParticles moodScore={avgMood} />
-      
-      {/* Dynamic Animated Blobs - Softened for better contrast */}
-      <View style={StyleSheet.absoluteFill} pointerEvents="none">
-        <BreathingView 
-          duration={8000} 
-          range={[1, 1.4]} 
-          style={[styles.blob, styles.blob1]} 
-        />
-        <BreathingView 
-          duration={10000} 
-          range={[1, 1.6]} 
-          style={[styles.blob, styles.blob2]} 
-        />
-        <BreathingView 
-          duration={12000} 
-          range={[1, 1.3]} 
-          style={[styles.blob, styles.blob3]} 
-        />
+      {/* 1. Atmospheric Canvas */}
+      <View style={StyleSheet.absoluteFill}>
+        <LinearGradient colors={stageGradient as any} style={StyleSheet.absoluteFill} />
+        <View style={styles.aura1}><ZenAura color={stageColor} size={800} duration={15000} /></View>
+        <View style={styles.aura2}><ZenAura color={stageColor} size={400} duration={12000} /></View>
+        <WeatherParticles moodScore={avgMood} />
       </View>
 
-      <ScrollView
-        contentContainerStyle={[
-          styles.scrollContent, 
-          { 
-            paddingTop: Math.max(insets.top, SPACING.lg),
-            paddingBottom: Math.max(insets.bottom, SPACING['6xl']) 
-          }
-        ]}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Header */}
-        <View style={styles.header}>
-          <ZenButton
-            onPress={() => router.push('/badges')}
-            variant="ghost"
-            style={styles.iconButton}
-          >
-            <IconBadge size={22} color={COLORS.textSecondary} />
-            {earnedCount > 0 && (
-              <View style={styles.badgeCount}>
-                <ZenTypography size="xs" variant="bold" color="white">
-                  {earnedCount}
-                </ZenTypography>
-              </View>
-            )}
-          </ZenButton>
-
-          <ZenButton
-            onPress={() => router.push('/settings')}
-            variant="ghost"
-            style={styles.iconButton}
-          >
-            <IconSettings size={22} color={COLORS.textSecondary} />
-          </ZenButton>
-        </View>
-
-        {/* Main Title Section */}
-        <Animated.View entering={FadeInDown.duration(1000).springify()} style={styles.titleSection}>
-          <ZenTypography 
-            type="serif" 
-            size="3xl" 
-            variant="bold" 
-            align="center"
-            style={styles.appTitle}
-          >
-            29天疗愈
-          </ZenTypography>
-          
-          <View style={styles.stageChip}>
-            <ZenTypography size="sm" color="textSecondary" style={styles.dayLabel}>
-              第 {currentDay} 天
-            </ZenTypography>
-            <View style={styles.dot} />
-            <ZenTypography size="sm" variant="medium" color="textSecondary">
-              {stage?.name}
-            </ZenTypography>
+      {/* 2. Editorial Header */}
+      <SafeAreaView style={styles.headerArea} edges={['top']}>
+        <View style={styles.headerRow}>
+          <View style={styles.brandGroup}>
+            <Text style={styles.brandTitle}>HEALING</Text>
+            <View style={[styles.brandLine, { backgroundColor: stageColor }]} />
           </View>
-        </Animated.View>
-
-        {/* Quote Section */}
-        <Animated.View entering={FadeIn.delay(400).duration(1200)} style={styles.quoteCard}>
-          <ZenTypography 
-            type="serif" 
-            size="2xl" 
-            color="primaryLight" 
-            style={styles.quoteMark}
-          >
-            “
-          </ZenTypography>
-          
-          <ZenTypography 
-            type="serif" 
-            size="lg" 
-            italic 
-            align="center" 
-            style={styles.dailyQuote}
-          >
-            {DAILY_QUOTES[currentDay - 1] ?? ''}
-          </ZenTypography>
-          
-          <ZenTypography 
-            type="serif" 
-            size="2xl" 
-            color="primaryLight" 
-            align="right"
-            style={styles.quoteMark}
-          >
-            ”
-          </ZenTypography>
-        </Animated.View>
-
-        {/* Action Area */}
-        <View style={styles.actionSection}>
-          <Animated.View entering={FadeInDown.delay(800).duration(800).springify()}>
-            <ZenButton
-              title="开始练习"
-              size="lg"
-              onPress={() => router.push(`/day/${currentDay}`)}
-              style={styles.mainButton}
-            />
-          </Animated.View>
+          <View style={styles.headerActions}>
+            <Pressable onPress={() => router.push('/badges')} style={styles.headerIcon}>
+              <IconBadge size={20} color={COLORS.textSecondary} />
+              {earnedCount > 0 && <View style={[styles.badgeDot, { backgroundColor: stageColor }]} />}
+            </Pressable>
+            <Pressable onPress={() => router.push('/settings')} style={styles.headerIcon}>
+              <IconSettings size={20} color={COLORS.textSecondary} />
+            </Pressable>
+          </View>
         </View>
+      </SafeAreaView>
 
-        {/* Journey Map Section */}
-        <Animated.View
-          entering={FadeIn.delay(1200).duration(800)}
-          style={styles.journeySection}
-        >
-          <ZenButton
-            title={journeyExpanded ? '隐于当下' : '见证旅程'}
-            variant="ghost"
-            size="sm"
-            onPress={toggleJourney}
-            style={styles.journeyToggle}
-          />
-          
-          <Animated.View style={animatedJourneyStyle}>
-            <View style={styles.journeyMapContainer}>
-              <JourneyMap
-                currentDay={currentDay}
-                completedDays={completedDays}
-                onDayPress={(day) => router.push(`/day/${day}`)}
-                justCompletedDay={justCompleted}
-              />
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={[styles.scrollInner, { paddingTop: insets.top + 60 }]}
+      >
+        {/* 3. Hero Section: Massive Day Counter */}
+        <View style={styles.heroSection}>
+          <Animated.View entering={FadeInDown.duration(800).springify()}>
+            <View style={styles.dayCounter}>
+              <Text style={styles.dayLabel}>DAY</Text>
+              <Text style={styles.dayValue}>{currentDay.toString().padStart(2, '0')}</Text>
+            </View>
+            <View style={styles.stageIndicator}>
+              <Text style={styles.stageName}>{stage?.name.toUpperCase()}</Text>
+              <View style={styles.statusChip}>
+                <View style={[styles.statusDot, { backgroundColor: isTodayCompleted ? COLORS.success : stageColor }]} />
+                <Text style={styles.statusText}>{isTodayCompleted ? 'COMPLETED' : 'IN PROGRESS'}</Text>
+              </View>
             </View>
           </Animated.View>
-        </Animated.View>
+        </View>
+
+        {/* 4. Modern Dashboard Sheet */}
+        <View style={styles.sheetContent}>
+          {/* Quote Card: Large Serif, Center Aligned */}
+          <Animated.View entering={FadeIn.delay(400).duration(1000)} style={styles.focusCard}>
+            <Text style={styles.quoteSerif}>
+              “{DAILY_QUOTES[currentDay - 1] ?? '静心思考，感受当下的力量。'}”
+            </Text>
+            <View style={styles.focusFooter}>
+              <MoodMiniChart scores={moods} color={stageColor} />
+              <View style={styles.focusTag}>
+                <Text style={styles.focusTagText}>TODAY'S FOCUS</Text>
+              </View>
+            </View>
+          </Animated.View>
+
+          {/* Primary Action: Fashionable Wide Button */}
+          <Animated.View entering={FadeInUp.delay(600).springify()} style={styles.actionWrapper}>
+            <ZenButton
+              title={isTodayCompleted ? "回顾练习" : "开始疗愈之旅"}
+              variant="hero"
+              size="xl"
+              fullWidth
+              onPress={() => router.push(`/day/${currentDay}`)}
+            />
+          </Animated.View>
+
+          {/* Data Section: Stats & Journey */}
+          <View style={styles.dataGrid}>
+            <View style={styles.statCol}>
+              <ZenCard variant="glass" style={styles.statCard}>
+                <Text style={styles.statVal}>{completedDays.length}</Text>
+                <Text style={styles.statKey}>DAYS DONE</Text>
+              </ZenCard>
+              <ZenCard variant="glass" style={[styles.statCard, { marginTop: SPACING.lg }]}>
+                <Text style={styles.statVal}>{avgMood || '-'}</Text>
+                <Text style={styles.statKey}>AVG MOOD</Text>
+              </ZenCard>
+            </View>
+            
+            <View style={styles.journeyCol}>
+              <ZenCard variant="glass" style={styles.journeyCard}>
+                <Text style={styles.journeyTitle}>THE PATH</Text>
+                <JourneyMap
+                  currentDay={currentDay}
+                  completedDays={completedDays}
+                  onDayPress={(day) => router.push(`/day/${day}`)}
+                  activeColor={stageColor}
+                />
+              </ZenCard>
+            </View>
+          </View>
+        </View>
       </ScrollView>
 
-      {isFirstTime && <WelcomeOverlay onStart={handleDismissWelcome} />}
+      {isFirstTime && <WelcomeOverlay onStart={initUser} />}
     </View>
   )
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  blob: {
-    position: 'absolute',
-    borderRadius: 1000,
-    opacity: 0.08, // Significantly softened for a halo effect
-  },
-  blob1: {
-    width: 350,
-    height: 350,
-    top: -80,
-    left: -80,
-    backgroundColor: COLORS.stageRebuild,
-  },
-  blob2: {
-    width: 450,
-    height: 450,
-    bottom: '15%',
-    right: -120,
-    backgroundColor: COLORS.stageEnergy,
-  },
-  blob3: {
-    width: 280,
-    height: 280,
-    top: '25%',
-    left: '5%',
-    backgroundColor: COLORS.stageDesensitize,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: SPACING.xl,
-  },
-  header: {
-    width: '100%',
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    paddingVertical: SPACING.md,
-    gap: SPACING.sm,
-  },
-  iconButton: {
-    width: 48,
-    minHeight: 48,
-    borderRadius: 24,
-    paddingHorizontal: 0,
-    paddingVertical: 0,
-  },
-  badgeCount: {
-    position: 'absolute',
-    top: 6,
-    right: 6,
-    backgroundColor: COLORS.primary,
-    minWidth: 18,
-    height: 18,
-    borderRadius: 9,
+  container: { flex: 1, backgroundColor: COLORS.background },
+  aura1: { position: 'absolute', top: -100, right: -200 },
+  aura2: { position: 'absolute', bottom: '15%', left: -150 },
+  
+  // Header
+  headerArea: { position: 'absolute', top: 0, left: 0, right: 0, zIndex: 100 },
+  headerRow: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 4,
-    ...SHADOWS.sm,
+    paddingHorizontal: SPACING['2xl'],
+    paddingTop: SPACING.md,
   },
-  titleSection: {
-    marginTop: SPACING['5xl'],
-    alignItems: 'center',
-    gap: SPACING.md,
-  },
-  appTitle: {
-    letterSpacing: TYPOGRAPHY.letterSpacing.wider,
-  },
-  stageChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.6)',
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.xs,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.4)',
-  },
-  dayLabel: {
-    letterSpacing: 1,
-  },
-  dot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: COLORS.textTertiary,
-    marginHorizontal: SPACING.sm,
-    opacity: 0.5,
-  },
-  quoteCard: {
-    marginVertical: SPACING['6xl'],
-    paddingHorizontal: SPACING.xl,
-    alignItems: 'center',
-  },
-  quoteMark: {
-    width: '100%',
-    opacity: 0.4,
-    marginBottom: -SPACING.md,
-  },
-  dailyQuote: {
-    lineHeight: 40,
-    paddingVertical: SPACING.lg,
-  },
-  actionSection: {
-    alignItems: 'center',
-    marginBottom: SPACING['6xl'],
-  },
-  mainButton: {
-    minWidth: 220,
-    ...SHADOWS.glow,
-  },
-  journeySection: {
-    width: '100%',
-    alignItems: 'center',
-  },
-  journeyToggle: {
-    marginBottom: SPACING.md,
-  },
-  journeyMapContainer: {
-    width: SCREEN_WIDTH - SPACING.xl * 2,
+  brandGroup: { gap: 4 },
+  brandTitle: { fontSize: 12, letterSpacing: 6, fontWeight: '700', color: COLORS.textSecondary },
+  brandLine: { width: 24, height: 2, borderRadius: 1 },
+  headerActions: { flexDirection: 'row', gap: SPACING.md },
+  headerIcon: { 
+    width: 40, height: 40, borderRadius: 20, 
     backgroundColor: 'rgba(255, 255, 255, 0.4)',
-    borderRadius: 24,
-    padding: SPACING.lg,
-    marginTop: SPACING.sm,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-    ...SHADOWS.soft,
+    alignItems: 'center', justifyContent: 'center',
+    borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.5)'
   },
-})
+  badgeDot: { position: 'absolute', top: 8, right: 8, width: 6, height: 6, borderRadius: 3, borderWidth: 1, borderColor: '#fff' },
 
+  scrollInner: { paddingBottom: 60 },
+
+  // Hero
+  heroSection: { paddingHorizontal: SPACING['2xl'], marginBottom: SPACING['5xl'] },
+  dayCounter: { flexDirection: 'row', alignItems: 'baseline' },
+  dayLabel: { fontSize: 24, fontWeight: '300', color: COLORS.textSecondary, letterSpacing: 4, marginRight: 12 },
+  dayValue: { fontSize: 110, fontWeight: '200', color: COLORS.text, letterSpacing: -6, includeFontPadding: false },
+  stageIndicator: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: -10 },
+  stageName: { fontSize: 14, letterSpacing: 6, fontWeight: '600', color: COLORS.textSecondary },
+  statusChip: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255, 255, 255, 0.6)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
+  statusDot: { width: 6, height: 6, borderRadius: 3, marginRight: 6 },
+  statusText: { fontSize: 10, fontWeight: '700', color: COLORS.textSecondary, letterSpacing: 1 },
+
+  // Sheet
+  sheetContent: { paddingHorizontal: SPACING['2xl'] },
+  focusCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    borderRadius: 40,
+    padding: SPACING['2xl'],
+    marginBottom: SPACING['2xl'],
+    shadowColor: '#000', shadowOffset: { width: 0, height: 20 }, shadowOpacity: 0.05, shadowRadius: 30,
+  },
+  quoteSerif: { 
+    fontFamily: TYPOGRAPHY.fontFamily.serif, 
+    fontSize: 26, lineHeight: 42, color: COLORS.text, 
+    textAlign: 'center', fontStyle: 'italic',
+    marginBottom: SPACING['2xl']
+  },
+  focusFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' },
+  miniChartContainer: { gap: 6 },
+  miniChartLabel: { fontSize: 9, fontWeight: '700', color: COLORS.textTertiary, letterSpacing: 2 },
+  focusTag: { backgroundColor: COLORS.text, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12 },
+  focusTagText: { fontSize: 9, fontWeight: '800', color: '#FFF', letterSpacing: 1 },
+
+  actionWrapper: { marginBottom: SPACING['4xl'] },
+
+  // Data Grid
+  dataGrid: { flexDirection: 'row', gap: SPACING.lg },
+  statCol: { flex: 1 },
+  statCard: { alignItems: 'center', justifyContent: 'center', paddingVertical: SPACING.xl, borderRadius: 30 },
+  statVal: { fontSize: 32, fontWeight: '300', color: COLORS.text, marginBottom: 4 },
+  statKey: { fontSize: 9, fontWeight: '700', color: COLORS.textTertiary, letterSpacing: 2 },
+  
+  journeyCol: { flex: 1.8 },
+  journeyCard: { padding: SPACING.lg, borderRadius: 35, alignItems: 'center' },
+  journeyTitle: { fontSize: 11, fontWeight: '800', color: COLORS.textSecondary, letterSpacing: 6, marginBottom: SPACING.md },
+})

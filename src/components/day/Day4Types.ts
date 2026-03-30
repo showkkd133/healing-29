@@ -7,21 +7,21 @@ export interface DeclutterItem {
 }
 
 export const CATEGORIES = [
-  { key: 'photo', label: '📷 照片类' },
-  { key: 'gift', label: '🎁 礼物类' },
-  { key: 'daily', label: '🏠 日常用品类' },
-  { key: 'other', label: '📦 其他' },
+  { key: 'photo', label: '照片类', icon: 'camera' },
+  { key: 'gift', label: '礼物类', icon: 'gift' },
+  { key: 'daily', label: '日常用品类', icon: 'home' },
+  { key: 'other', label: '其他', icon: 'package' },
 ] as const
 
 export const GUIDANCE_TEXT = '今天只收拾，不做决定。把相关物品放进一个盒子'
 export const COMPLETION_TEXT = '你把回忆收好了，现在房间是现在的你'
 
-// Box fill levels based on item count
-export const getBoxEmoji = (count: number): string => {
-  if (count === 0) return '📦'
-  if (count <= 3) return '🗃️'
-  if (count <= 6) return '📫'
-  return '🎁'
+// Box icons based on item count
+export const getBoxIcon = (count: number): string => {
+  if (count === 0) return 'package'
+  if (count <= 3) return 'archive'
+  if (count <= 6) return 'mail'
+  return 'gift'
 }
 
 export const getBoxLabel = (count: number): string => {

@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useState } from 'react'
 import {
   View,
   Text,
-  TouchableOpacity,
   StyleSheet,
 } from 'react-native'
 import Animated, {
@@ -13,13 +12,14 @@ import Animated, {
   interpolate,
   Easing,
 } from 'react-native-reanimated'
-import * as Haptics from 'expo-haptics'
+import { Feather, Ionicons } from '@expo/vector-icons'
 import { COLORS, SPACING, BORDER_RADIUS, SHADOWS } from '@/constants/theme'
+import { ZenButton } from '../ui/ZenButton'
 import ConfettiParticle from './Day2ConfettiParticle'
 
 // ─── Constants ────────────────────────────────────────────────────
 
-const CONFETTI_EMOJIS = ['🎉', '✨', '💫', '🌟', '🎊', '⭐'] as const
+const CONFETTI_ICONS = ['star', 'sun', 'zap', 'heart'] as const
 const CONFETTI_COUNT = 8
 const FLIP_DURATION = 500
 
@@ -29,6 +29,7 @@ export interface TaskItem {
   readonly id: number
   readonly title: string
   readonly icon: string
+  readonly provider?: 'Feather' | 'Ionicons'
 }
 
 // ─── Props ────────────────────────────────────────────────────────
@@ -80,33 +81,35 @@ const FlipCard = React.memo(function FlipCard({
     }
   })
 
-  const handlePress = useCallback(async () => {
+  const handlePress = useCallback(() => {
     if (flipped) return
-    try {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
-    } catch {
-      // Haptics not available
-    }
     onFlip()
   }, [flipped, onFlip])
 
+  const renderIcon = () => {
+    const IconComponent = task.provider === 'Ionicons' ? Ionicons : Feather
+    return <IconComponent name={task.icon as any} size={28} color={COLORS.primary} />
+  }
+
   return (
     <Animated.View entering={SlideInDown.delay(index * 150).duration(500)}>
-      <TouchableOpacity
-        style={styles.flipCardContainer}
+      <ZenButton
         onPress={handlePress}
-        activeOpacity={0.95}
         disabled={flipped}
+        variant="ghost"
+        style={styles.flipCardContainer}
       >
         {/* Front face */}
         <Animated.View style={[styles.cardFace, styles.cardFront, frontStyle]}>
-          <Text style={styles.cardIcon}>{task.icon}</Text>
+          <View style={styles.iconContainer}>
+            {renderIcon()}
+          </View>
           <Text style={styles.cardTitle}>{task.title}</Text>
         </Animated.View>
 
         {/* Back face */}
         <Animated.View style={[styles.cardFace, styles.cardBack, backStyle]}>
-          <Text style={styles.checkMark}>✓</Text>
+          <Feather name="check-circle" size={32} color={COLORS.success} />
           <Text style={styles.cardDoneText}>完成！</Text>
         </Animated.View>
 
@@ -117,12 +120,12 @@ const FlipCard = React.memo(function FlipCard({
               <ConfettiParticle
                 key={i}
                 index={i}
-                emoji={CONFETTI_EMOJIS[i % CONFETTI_EMOJIS.length]}
+                icon={CONFETTI_ICONS[i % CONFETTI_ICONS.length]}
               />
             ))}
           </View>
         )}
-      </TouchableOpacity>
+      </ZenButton>
     </Animated.View>
   )
 })
@@ -134,6 +137,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     height: 100,
+    paddingHorizontal: 0,
+    paddingVertical: 0,
+    borderRadius: BORDER_RADIUS.xl,
+    backgroundColor: 'transparent',
   },
   cardFace: {
     position: 'absolute',
@@ -152,18 +159,18 @@ const styles = StyleSheet.create({
   cardBack: {
     backgroundColor: COLORS.secondary,
   },
-  cardIcon: {
-    fontSize: 28,
+  iconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: COLORS.background,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   cardTitle: {
     fontSize: 18,
     fontWeight: '600',
     color: COLORS.text,
-  },
-  checkMark: {
-    fontSize: 32,
-    color: COLORS.success,
-    fontWeight: '700',
   },
   cardDoneText: {
     fontSize: 16,

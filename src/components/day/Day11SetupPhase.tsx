@@ -1,9 +1,11 @@
 // Day 11 — Setup phase: duration selection and start button
 
 import React from 'react'
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native'
+import { View, Text, ScrollView, StyleSheet } from 'react-native'
 import Animated, { FadeIn, SlideInDown } from 'react-native-reanimated'
 import { COLORS, SPACING, BORDER_RADIUS, SHADOWS } from '@/constants/theme'
+import { ZenButton } from '@/components/ui/ZenButton'
+import { useHaptic } from '@/hooks/useHaptic'
 import { DURATION_OPTIONS } from './Day11constants'
 
 interface Day11SetupPhaseProps {
@@ -21,6 +23,18 @@ const Day11SetupPhase = React.memo(function Day11SetupPhase({
   onSetCustomMinutes,
   onStartMeltdown,
 }: Day11SetupPhaseProps) {
+  const haptic = useHaptic();
+
+  const handleSelectDuration = (id: string) => {
+    haptic.light();
+    onSelectDuration(id);
+  }
+
+  const handleSetCustomMinutes = (minutes: number) => {
+    haptic.light();
+    onSetCustomMinutes(minutes);
+  }
+
   return (
     <View style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
@@ -33,24 +47,13 @@ const Day11SetupPhase = React.memo(function Day11SetupPhase({
 
         <Animated.View entering={SlideInDown.delay(600).duration(500)} style={styles.durationOptions}>
           {DURATION_OPTIONS.map((option) => (
-            <TouchableOpacity
+            <ZenButton
               key={option.id}
-              style={[
-                styles.durationButton,
-                selectedDuration === option.id && styles.durationButtonActive,
-              ]}
-              onPress={() => onSelectDuration(option.id)}
-              activeOpacity={0.7}
-            >
-              <Text
-                style={[
-                  styles.durationText,
-                  selectedDuration === option.id && styles.durationTextActive,
-                ]}
-              >
-                {option.label}
-              </Text>
-            </TouchableOpacity>
+              title={option.label}
+              variant={selectedDuration === option.id ? 'primary' : 'outline'}
+              onPress={() => handleSelectDuration(option.id)}
+              style={styles.durationButton}
+            />
           ))}
         </Animated.View>
 
@@ -59,17 +62,14 @@ const Day11SetupPhase = React.memo(function Day11SetupPhase({
             <Text style={styles.sliderLabel}>{customMinutes} 分钟</Text>
             <View style={styles.sliderTrack}>
               {[60, 90, 120, 150, 180, 210, 240].map((value) => (
-                <TouchableOpacity
+                <ZenButton
                   key={value}
-                  style={[
-                    styles.sliderDot,
-                    customMinutes === value && styles.sliderDotActive,
-                  ]}
-                  onPress={() => onSetCustomMinutes(value)}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.sliderDotLabel}>{value / 60}h</Text>
-                </TouchableOpacity>
+                  title={`${value / 60}h`}
+                  variant={customMinutes === value ? 'primary' : 'ghost'}
+                  size="sm"
+                  onPress={() => handleSetCustomMinutes(value)}
+                  style={styles.sliderDot}
+                />
               ))}
             </View>
           </Animated.View>
@@ -77,13 +77,13 @@ const Day11SetupPhase = React.memo(function Day11SetupPhase({
 
         {selectedDuration && (
           <Animated.View entering={FadeIn.duration(400)} style={styles.startWrapper}>
-            <TouchableOpacity
-              style={styles.startButton}
+            <ZenButton
+              title="开始崩溃"
+              variant="primary"
+              size="lg"
               onPress={onStartMeltdown}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.startButtonText}>开始崩溃</Text>
-            </TouchableOpacity>
+              fullWidth
+            />
           </Animated.View>
         )}
       </ScrollView>
@@ -122,25 +122,6 @@ const styles = StyleSheet.create({
   },
   durationButton: {
     flex: 1,
-    paddingVertical: SPACING.lg,
-    borderRadius: BORDER_RADIUS.xl,
-    backgroundColor: COLORS.card,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    ...SHADOWS.sm,
-  },
-  durationButtonActive: {
-    backgroundColor: COLORS.stageEmergency,
-    borderColor: COLORS.stageEmergency,
-  },
-  durationText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: COLORS.text,
-  },
-  durationTextActive: {
-    color: COLORS.card,
   },
   sliderContainer: {
     marginTop: SPACING.xl,
@@ -159,34 +140,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.md,
   },
   sliderDot: {
-    alignItems: 'center',
-    paddingVertical: SPACING.sm,
-    paddingHorizontal: SPACING.sm,
-  },
-  sliderDotActive: {
-    backgroundColor: COLORS.stageEmergency,
-    borderRadius: BORDER_RADIUS.md,
-  },
-  sliderDotLabel: {
-    fontSize: 13,
-    color: COLORS.textSecondary,
-    fontWeight: '500',
+    minWidth: 44,
   },
   startWrapper: {
     marginTop: SPACING['3xl'],
-    alignItems: 'center',
-  },
-  startButton: {
-    paddingVertical: 14,
-    paddingHorizontal: SPACING['4xl'],
-    borderRadius: BORDER_RADIUS['2xl'],
-    backgroundColor: COLORS.stageEmergency,
-    ...SHADOWS.md,
-  },
-  startButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.card,
+    paddingHorizontal: SPACING.xl,
   },
 })
 

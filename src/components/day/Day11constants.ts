@@ -25,14 +25,15 @@ export const DURATION_OPTIONS: readonly DurationOption[] = [
 export interface ToolItem {
   readonly id: string
   readonly icon: string
+  readonly iconName: string
   readonly title: string
 }
 
 export const TOOLS: readonly ToolItem[] = [
-  { id: 'photos', icon: '❤️', title: '前任照片查看器' },
-  { id: 'music', icon: '🎵', title: '悲伤歌单' },
-  { id: 'timeline', icon: '📝', title: '回忆时间线' },
-  { id: 'vent', icon: '💢', title: '发泄打字板' },
+  { id: 'photos', icon: '❤️', iconName: 'heart', title: '前任照片查看器' },
+  { id: 'music', icon: '🎵', iconName: 'music', title: '悲伤歌单' },
+  { id: 'timeline', icon: '📝', iconName: 'edit-3', title: '回忆时间线' },
+  { id: 'vent', icon: '💢', iconName: 'zap', title: '发泄打字板' },
 ] as const
 
 export const MOCK_SONGS = [

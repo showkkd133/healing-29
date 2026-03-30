@@ -1,9 +1,10 @@
 import React, { useCallback, useState } from 'react'
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
+import { View, Text, StyleSheet } from 'react-native'
 import Animated, { FadeIn } from 'react-native-reanimated'
-import * as Haptics from 'expo-haptics'
+import { Feather } from '@expo/vector-icons'
 import { COLORS, SPACING, BORDER_RADIUS, SHADOWS } from '@/constants/theme'
 import type { Day3Data } from '@/types'
+import { ZenButton } from '../ui/ZenButton'
 import { BADGE_NAME } from './Day3Constants'
 import type { CompanionMode } from './Day3Constants'
 import Day3ModeSelector from './Day3ModeSelector'
@@ -33,12 +34,7 @@ const Day3Companion = React.memo(function Day3Companion({
     setTaskDone(true)
   }, [])
 
-  const handleBadgeClaim = useCallback(async () => {
-    try {
-      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-    } catch {
-      // Haptics not available
-    }
+  const handleBadgeClaim = useCallback(() => {
     setBadgeShown(true)
     if (mode) {
       onComplete({
@@ -56,7 +52,7 @@ const Day3Companion = React.memo(function Day3Companion({
     return (
       <View style={styles.container}>
         <Animated.View entering={FadeIn.duration(800)} style={styles.badgeContainer}>
-          <Text style={styles.badgeEmoji}>🏅</Text>
+          <Feather name="award" size={64} color={COLORS.accent} style={styles.badgeIcon} />
           <Text style={styles.badgeTitle}>解锁徽章</Text>
           <Text style={styles.badgeName}>{BADGE_NAME}</Text>
         </Animated.View>
@@ -70,14 +66,16 @@ const Day3Companion = React.memo(function Day3Companion({
     return (
       <View style={styles.container}>
         <Animated.View entering={FadeIn.duration(600)} style={styles.badgeContainer}>
-          <TouchableOpacity
-            style={styles.badgeClaimButton}
+          <ZenButton
             onPress={handleBadgeClaim}
-            activeOpacity={0.8}
+            variant="hero"
+            style={styles.badgeClaimButton}
           >
-            <Text style={styles.badgeClaimEmoji}>🏅</Text>
-            <Text style={styles.badgeClaimText}>领取 "{BADGE_NAME}" 徽章</Text>
-          </TouchableOpacity>
+            <View style={styles.badgeClaimContent}>
+              <Feather name="award" size={48} color={COLORS.white} style={styles.badgeClaimIcon} />
+              <Text style={styles.badgeClaimText}>领取 "{BADGE_NAME}" 徽章</Text>
+            </View>
+          </ZenButton>
         </Animated.View>
       </View>
     )
@@ -134,8 +132,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  badgeEmoji: {
-    fontSize: 56,
+  badgeIcon: {
     marginBottom: SPACING.xl,
   },
   badgeTitle: {
@@ -150,21 +147,21 @@ const styles = StyleSheet.create({
     color: COLORS.text,
   },
   badgeClaimButton: {
-    alignItems: 'center',
-    backgroundColor: COLORS.card,
-    borderRadius: BORDER_RADIUS['2xl'],
     paddingVertical: SPACING['3xl'],
     paddingHorizontal: SPACING['4xl'],
-    ...SHADOWS.lg,
+    height: 'auto',
   },
-  badgeClaimEmoji: {
-    fontSize: 48,
+  badgeClaimContent: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  badgeClaimIcon: {
     marginBottom: SPACING.lg,
   },
   badgeClaimText: {
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.primary,
+    color: COLORS.white,
   },
 })
 

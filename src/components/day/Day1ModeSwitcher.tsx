@@ -1,7 +1,9 @@
 import React from 'react'
-import { Text, TouchableOpacity, StyleSheet } from 'react-native'
-import Animated, { FadeIn } from 'react-native-reanimated'
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
+import Animated, { FadeIn, useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated'
+import { Feather } from '@expo/vector-icons'
 import { COLORS, SPACING, BORDER_RADIUS, SHADOWS } from '@/constants/theme'
+import { useHaptic } from '@/hooks/useHaptic'
 
 // ─── Props ─────────────────────────────────────────────────────────
 
@@ -18,25 +20,50 @@ const Day1ModeSwitcher = React.memo(function Day1ModeSwitcher({
   mode,
   onSwitch,
 }: Day1ModeSwitcherProps) {
+  const haptic = useHaptic();
+  
+  const handleSwitch = (newMode: InputMode) => {
+    if (newMode !== mode) {
+      haptic.light();
+      onSwitch(newMode);
+    }
+  };
+
   return (
     <Animated.View entering={FadeIn.delay(600).duration(400)} style={styles.tabRow}>
       <TouchableOpacity
         style={[styles.tab, mode === 'voice' && styles.tabActive]}
-        onPress={() => onSwitch('voice')}
-        activeOpacity={0.7}
+        onPress={() => handleSwitch('voice')}
+        activeOpacity={0.8}
       >
-        <Text style={[styles.tabText, mode === 'voice' && styles.tabTextActive]}>
-          🎙 语音
-        </Text>
+        <View style={styles.content}>
+          <Feather 
+            name="mic" 
+            size={16} 
+            color={mode === 'voice' ? COLORS.primary : COLORS.textTertiary} 
+            style={styles.icon}
+          />
+          <Text style={[styles.tabText, mode === 'voice' && styles.tabTextActive]}>
+            语音
+          </Text>
+        </View>
       </TouchableOpacity>
       <TouchableOpacity
         style={[styles.tab, mode === 'text' && styles.tabActive]}
-        onPress={() => onSwitch('text')}
-        activeOpacity={0.7}
+        onPress={() => handleSwitch('text')}
+        activeOpacity={0.8}
       >
-        <Text style={[styles.tabText, mode === 'text' && styles.tabTextActive]}>
-          ✏️ 文字
-        </Text>
+        <View style={styles.content}>
+          <Feather 
+            name="edit-3" 
+            size={16} 
+            color={mode === 'text' ? COLORS.primary : COLORS.textTertiary} 
+            style={styles.icon}
+          />
+          <Text style={[styles.tabText, mode === 'text' && styles.tabTextActive]}>
+            文字
+          </Text>
+        </View>
       </TouchableOpacity>
     </Animated.View>
   )
@@ -48,27 +75,39 @@ const styles = StyleSheet.create({
   tabRow: {
     flexDirection: 'row',
     alignSelf: 'center',
-    backgroundColor: COLORS.border,
+    backgroundColor: COLORS.borderLight,
     borderRadius: BORDER_RADIUS.xl,
-    padding: 3,
+    padding: 4,
     marginBottom: SPACING['3xl'],
   },
   tab: {
-    paddingVertical: SPACING.sm,
-    paddingHorizontal: SPACING['2xl'],
-    borderRadius: BORDER_RADIUS.lg,
+    paddingVertical: SPACING.sm + 2,
+    paddingHorizontal: SPACING.xl,
+    borderRadius: BORDER_RADIUS.lg + 2,
+    minWidth: 100,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   tabActive: {
     backgroundColor: COLORS.card,
     ...SHADOWS.sm,
   },
+  content: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  icon: {
+    marginRight: 6,
+  },
   tabText: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '500',
-    color: COLORS.textSecondary,
+    color: COLORS.textTertiary,
+    letterSpacing: 0.5,
   },
   tabTextActive: {
-    color: COLORS.text,
+    color: COLORS.primary,
   },
 })
 

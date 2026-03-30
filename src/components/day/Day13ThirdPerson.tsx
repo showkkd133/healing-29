@@ -3,7 +3,6 @@ import {
   View,
   Text,
   TextInput,
-  TouchableOpacity,
   StyleSheet,
   ScrollView,
   KeyboardAvoidingView,
@@ -14,7 +13,9 @@ import Animated, {
   FadeIn,
   SlideInDown,
 } from 'react-native-reanimated'
+import { Feather } from '@expo/vector-icons'
 import { COLORS, SPACING, BORDER_RADIUS, SHADOWS } from '@/constants/theme'
+import { ZenButton } from '@/components/ui/ZenButton'
 import ReflectionSection from './Day13ReflectionSection'
 
 interface Day13ThirdPersonProps {
@@ -74,7 +75,7 @@ const Day13ThirdPerson = React.memo(function Day13ThirdPerson({
     return (
       <View style={styles.container}>
         <Animated.View entering={FadeIn.duration(800)} style={styles.completedContainer}>
-          <Text style={styles.completedEmoji}>🔍</Text>
+          <Feather name="search" size={48} color={COLORS.primary} style={styles.completedIcon} />
           <Text style={styles.completedText}>
             距离产生的不只是美，还有 clarity
           </Text>
@@ -116,26 +117,24 @@ const Day13ThirdPerson = React.memo(function Day13ThirdPerson({
 
           <View style={styles.inputFooter}>
             <Text style={styles.wordCountText}>{wordCount} 字</Text>
-            <TouchableOpacity
-              style={styles.aiButton}
+            <ZenButton
+              variant="outline"
+              size="sm"
+              title="帮我组织语言"
+              rightIcon="zap"
               onPress={handleAiAssist}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.aiButtonText}>帮我组织语言 ✨</Text>
-            </TouchableOpacity>
+            />
           </View>
         </Animated.View>
 
         {/* Show word cloud button */}
         {canShowCloud && !showWordCloud && (
           <Animated.View entering={FadeIn.duration(400)} style={styles.showCloudWrapper}>
-            <TouchableOpacity
-              style={styles.showCloudButton}
+            <ZenButton
+              title="完成叙事，查看情感词云"
               onPress={handleShowWordCloud}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.showCloudText}>完成叙事，查看情感词云</Text>
-            </TouchableOpacity>
+              fullWidth
+            />
           </Animated.View>
         )}
 
@@ -195,42 +194,16 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: COLORS.textSecondary,
   },
-  aiButton: {
-    paddingVertical: SPACING.sm,
-    paddingHorizontal: SPACING.lg,
-    backgroundColor: COLORS.card,
-    borderRadius: BORDER_RADIUS.lg,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  aiButtonText: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: COLORS.primary,
-  },
   showCloudWrapper: {
     marginTop: SPACING['2xl'],
     alignItems: 'center',
-  },
-  showCloudButton: {
-    paddingVertical: 14,
-    paddingHorizontal: SPACING['3xl'],
-    borderRadius: BORDER_RADIUS['2xl'],
-    backgroundColor: COLORS.primary,
-    ...SHADOWS.md,
-  },
-  showCloudText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: COLORS.card,
   },
   completedContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  completedEmoji: {
-    fontSize: 48,
+  completedIcon: {
     marginBottom: SPACING.xl,
   },
   completedText: {

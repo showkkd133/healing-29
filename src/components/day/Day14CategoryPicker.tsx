@@ -1,6 +1,8 @@
 import React from 'react'
-import { Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native'
-import { COLORS, SPACING, BORDER_RADIUS } from '@/constants/theme'
+import { View, ScrollView, StyleSheet } from 'react-native'
+import { COLORS, SPACING } from '@/constants/theme'
+import { ZenButton } from '@/components/ui/ZenButton'
+import { useHaptic } from '@/hooks/useHaptic'
 
 // ─── Types ────────────────────────────────────────────────────────
 
@@ -38,63 +40,48 @@ const CategoryPicker = React.memo(function CategoryPicker({
   value,
   onChange,
 }: CategoryPickerProps) {
+  const haptic = useHaptic();
+
+  const handleSelect = (cat: Category) => {
+    haptic.light();
+    onChange(cat);
+  };
+
   return (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={pickerStyles.container}
-    >
-      {CATEGORIES.map((cat) => (
-        <TouchableOpacity
-          key={cat}
-          style={[
-            pickerStyles.pill,
-            value === cat && pickerStyles.pillActive,
-          ]}
-          onPress={() => onChange(cat)}
-          activeOpacity={0.7}
-        >
-          <Text
-            style={[
-              pickerStyles.pillText,
-              value === cat && pickerStyles.pillTextActive,
-            ]}
-          >
-            {cat}
-          </Text>
-        </TouchableOpacity>
-      ))}
-    </ScrollView>
+    <View style={pickerStyles.outerContainer}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={pickerStyles.container}
+      >
+        {CATEGORIES.map((cat) => (
+          <View key={cat} style={pickerStyles.pillWrapper}>
+            <ZenButton
+              title={cat}
+              variant={value === cat ? 'primary' : 'outline'}
+              size="sm"
+              onPress={() => handleSelect(cat)}
+            />
+          </View>
+        ))}
+      </ScrollView>
+    </View>
   )
 })
 
 // ─── Styles ───────────────────────────────────────────────────────
 
 const pickerStyles = StyleSheet.create({
+  outerContainer: {
+    marginVertical: SPACING.md,
+  },
   container: {
     flexDirection: 'row',
-    gap: SPACING.xs,
-    paddingVertical: SPACING.xs,
+    gap: SPACING.sm,
+    paddingHorizontal: SPACING.xs,
   },
-  pill: {
-    paddingVertical: SPACING.xs,
-    paddingHorizontal: SPACING.md,
-    borderRadius: BORDER_RADIUS.full,
-    backgroundColor: COLORS.card,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  pillActive: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
-  },
-  pillText: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: COLORS.textSecondary,
-  },
-  pillTextActive: {
-    color: COLORS.card,
+  pillWrapper: {
+    minWidth: 80,
   },
 })
 

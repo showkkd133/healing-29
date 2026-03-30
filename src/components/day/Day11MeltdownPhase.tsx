@@ -3,7 +3,9 @@
 import React from 'react'
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native'
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated'
+import { Feather } from '@expo/vector-icons'
 import { COLORS, SPACING, BORDER_RADIUS, SHADOWS } from '@/constants/theme'
+import { useHaptic } from '@/hooks/useHaptic'
 import { TOOLS, formatCountdown } from './Day11constants'
 import { PhotoViewer, SadPlaylist, MemoryTimeline, VentBoard } from './Day11ToolContent'
 
@@ -24,6 +26,13 @@ const Day11MeltdownPhase = React.memo(function Day11MeltdownPhase({
   onToolPress,
   onVentTextChange,
 }: Day11MeltdownPhaseProps) {
+  const haptic = useHaptic();
+
+  const handleToolPress = (toolId: string) => {
+    haptic.medium();
+    onToolPress(toolId);
+  }
+
   return (
     <View style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
@@ -43,12 +52,19 @@ const Day11MeltdownPhase = React.memo(function Day11MeltdownPhase({
                   expandedTool === tool.id && styles.toolCardExpanded,
                   toolsUsed.includes(tool.id) && styles.toolCardUsed,
                 ]}
-                onPress={() => onToolPress(tool.id)}
+                onPress={() => handleToolPress(tool.id)}
                 activeOpacity={0.8}
               >
                 <View style={styles.toolHeader}>
-                  <Text style={styles.toolIcon}>{tool.icon}</Text>
-                  <Text style={styles.toolTitle}>{tool.title}</Text>
+                  <Feather 
+                    name={tool.iconName as any} 
+                    size={24} 
+                    color={expandedTool === tool.id ? COLORS.primary : COLORS.textSecondary} 
+                  />
+                  <Text style={[
+                    styles.toolTitle,
+                    expandedTool === tool.id && styles.toolTitleActive
+                  ]}>{tool.title}</Text>
                 </View>
 
                 {expandedTool === tool.id && (

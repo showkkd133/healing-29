@@ -1,7 +1,10 @@
 import React from 'react'
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native'
-import Animated, { FadeIn } from 'react-native-reanimated'
+import { View, StyleSheet, ScrollView } from 'react-native'
+import Animated, { FadeIn, FadeInUp, ZoomIn } from 'react-native-reanimated'
+import { Feather } from '@expo/vector-icons'
 import { COLORS, SPACING, BORDER_RADIUS, SHADOWS } from '@/constants/theme'
+import { ZenButton } from '../ui/ZenButton'
+import { ZenTypography } from '../ui/ZenTypography'
 import { WISH_TYPES } from './Day26Constants'
 
 // ─── Props ─────────────────────────────────────────────────────────
@@ -26,7 +29,6 @@ const Day26Certificate = React.memo(function Day26Certificate({
   wish,
   onComplete,
 }: Day26CertificateProps) {
-  const typeInfo = WISH_TYPES.find((t) => t.id === selectedType)
   const dateStr = formatDate()
 
   return (
@@ -35,23 +37,46 @@ const Day26Certificate = React.memo(function Day26Certificate({
       contentContainerStyle={styles.scrollContent}
       showsVerticalScrollIndicator={false}
     >
-      <Animated.View entering={FadeIn.duration(600)} style={styles.certificate}>
-        <Text style={styles.certTitle}>自我礼物证书</Text>
-        <View style={styles.certDivider} />
-        <Text style={styles.certEmoji}>{typeInfo?.emoji ?? '🎁'}</Text>
-        <Text style={styles.certWish}>{wish}</Text>
-        <Text style={styles.certDate}>{dateStr}</Text>
-        <View style={styles.certDivider} />
-        <Text style={styles.certFooter}>致 勇敢的自己</Text>
+      <Animated.View entering={FadeInUp.duration(800)} style={styles.certificateContainer}>
+        <View style={styles.innerBorder}>
+          <ZenTypography variant="bold" size="lg" color="text" align="center" style={styles.certTitle}>
+            自我礼物证书
+          </ZenTypography>
+          
+          <View style={styles.certDivider} />
+          
+          <Animated.View entering={ZoomIn.delay(400).duration(600)} style={styles.iconWrapper}>
+            <Feather name="award" size={64} color={COLORS.accent} />
+          </Animated.View>
+
+          <ZenTypography variant="bold" size="md" color="primary" align="center" style={styles.certWish}>
+            "{wish}"
+          </ZenTypography>
+          
+          <View style={styles.stampedArea}>
+            <ZenTypography size="sm" color="textTertiary" style={styles.certDate}>
+              颁发日期：{dateStr}
+            </ZenTypography>
+          </View>
+          
+          <View style={styles.certDivider} />
+          
+          <ZenTypography type="serif" variant="medium" size="base" color="textSecondary" align="center">
+            致 勇敢而温柔的自己
+          </ZenTypography>
+        </View>
       </Animated.View>
 
-      <TouchableOpacity
-        style={styles.primaryButton}
-        onPress={onComplete}
-        activeOpacity={0.8}
-      >
-        <Text style={styles.primaryButtonText}>完成</Text>
-      </TouchableOpacity>
+      <Animated.View entering={FadeIn.delay(800).duration(400)}>
+        <ZenButton
+          title="领取奖励并开启新篇章"
+          variant="hero"
+          size="lg"
+          fullWidth
+          onPress={onComplete}
+          style={styles.primaryButton}
+        />
+      </Animated.View>
     </ScrollView>
   )
 })
@@ -63,64 +88,53 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: SPACING['5xl'],
+    paddingBottom: SPACING['6xl'],
+    paddingHorizontal: SPACING.xl,
   },
-  certificate: {
-    backgroundColor: '#FBF8F1',
+  certificateContainer: {
+    backgroundColor: '#FDFBF7',
     borderRadius: BORDER_RADIUS.xl,
-    padding: SPACING['3xl'],
-    alignItems: 'center',
+    padding: 6, // Outer gap for the double border feel
     marginTop: SPACING.xl,
-    ...SHADOWS.lg,
+    ...SHADOWS.xl,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  innerBorder: {
     borderWidth: 2,
-    borderColor: COLORS.accent,
+    borderColor: COLORS.accentLight,
+    borderRadius: BORDER_RADIUS.lg,
+    padding: SPACING['2xl'],
+    alignItems: 'center',
   },
   certTitle: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: COLORS.text,
-    letterSpacing: 2,
+    letterSpacing: 4,
+    textTransform: 'uppercase',
   },
   certDivider: {
-    width: '60%',
+    width: '40%',
     height: 1,
-    backgroundColor: COLORS.accent,
+    backgroundColor: COLORS.accentLight,
     marginVertical: SPACING.xl,
   },
-  certEmoji: {
-    fontSize: 48,
-    marginBottom: SPACING.lg,
+  iconWrapper: {
+    padding: SPACING.lg,
+    marginBottom: SPACING.xl,
   },
   certWish: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: COLORS.primary,
-    textAlign: 'center',
-    lineHeight: 28,
+    lineHeight: 32,
+    marginBottom: SPACING['2xl'],
+    paddingHorizontal: SPACING.md,
+  },
+  stampedArea: {
     marginBottom: SPACING.lg,
+    opacity: 0.8,
   },
   certDate: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-  },
-  certFooter: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: COLORS.textSecondary,
-    fontStyle: 'italic',
+    letterSpacing: 1,
   },
   primaryButton: {
-    marginTop: SPACING['3xl'],
-    paddingVertical: 14,
-    borderRadius: BORDER_RADIUS['2xl'],
-    backgroundColor: COLORS.primary,
-    alignItems: 'center',
-    ...SHADOWS.md,
-  },
-  primaryButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.card,
+    marginTop: SPACING['4xl'],
   },
 })
 

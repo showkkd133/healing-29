@@ -1,8 +1,9 @@
 import React from 'react'
-import { Text, TouchableOpacity, StyleSheet } from 'react-native'
+import { StyleSheet } from 'react-native'
 import Animated, { FadeIn } from 'react-native-reanimated'
-import { COLORS, SPACING, BORDER_RADIUS } from '@/constants/theme'
+import { SPACING } from '@/constants/theme'
 import { CATEGORIES } from './Day4Types'
+import { ZenButton } from '../ui/ZenButton'
 
 interface Day4CategoryFilterProps {
   readonly selectedCategories: readonly string[]
@@ -16,26 +17,20 @@ const Day4CategoryFilter = React.memo(function Day4CategoryFilter({
 }: Day4CategoryFilterProps) {
   return (
     <Animated.View entering={FadeIn.delay(500).duration(400)} style={styles.row}>
-      {CATEGORIES.map((cat) => (
-        <TouchableOpacity
-          key={cat.key}
-          style={[
-            styles.chip,
-            selectedCategories.includes(cat.key) && styles.chipActive,
-          ]}
-          onPress={() => onToggle(cat.key)}
-          activeOpacity={0.7}
-        >
-          <Text
-            style={[
-              styles.chipText,
-              selectedCategories.includes(cat.key) && styles.chipTextActive,
-            ]}
-          >
-            {cat.label}
-          </Text>
-        </TouchableOpacity>
-      ))}
+      {CATEGORIES.map((cat) => {
+        const isActive = selectedCategories.includes(cat.key);
+        return (
+          <ZenButton
+            key={cat.key}
+            title={cat.label}
+            leftIcon={cat.icon as any}
+            variant={isActive ? 'primary' : 'outline'}
+            size="sm"
+            onPress={() => onToggle(cat.key)}
+            style={styles.chip}
+          />
+        );
+      })}
     </Animated.View>
   )
 })
@@ -49,24 +44,7 @@ const styles = StyleSheet.create({
     marginBottom: SPACING['2xl'],
   },
   chip: {
-    paddingVertical: SPACING.sm,
-    paddingHorizontal: SPACING.lg,
-    borderRadius: BORDER_RADIUS['2xl'],
-    backgroundColor: COLORS.card,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  chipActive: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
-  },
-  chipText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: COLORS.textSecondary,
-  },
-  chipTextActive: {
-    color: COLORS.card,
+    paddingHorizontal: SPACING.md,
   },
 })
 
