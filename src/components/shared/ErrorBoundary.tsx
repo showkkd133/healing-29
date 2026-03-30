@@ -12,11 +12,19 @@ export default class ErrorBoundary extends React.Component<Props, State> {
     this.state = { hasError: false }
   }
 
-  static getDerivedStateFromError(): State {
+  static getDerivedStateFromError(error: Error): State {
+    // Ignore errors originating from browser extensions
+    if (error?.stack?.includes('chrome-extension://') || error?.stack?.includes('moz-extension://')) {
+      return { hasError: false }
+    }
     return { hasError: true }
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    // Skip logging for browser extension errors
+    if (error?.stack?.includes('chrome-extension://') || error?.stack?.includes('moz-extension://')) {
+      return
+    }
     console.error('App error:', error, errorInfo)
   }
 
