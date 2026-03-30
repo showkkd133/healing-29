@@ -98,22 +98,26 @@ const Day1VoiceRecorder = React.memo(function Day1VoiceRecorder({
   const scale = useSharedValue(1);
   const innerRadius = useSharedValue(isRecording ? 8 : 20);
   const innerSize = useSharedValue(isRecording ? 32 : 40);
+  const buttonBg = useSharedValue(isRecording ? '#FFF0F0' : COLORS.secondaryLight);
+  const innerBg = useSharedValue(isRecording ? '#E05858' : COLORS.primary);
 
   useEffect(() => {
     innerRadius.value = withSpring(isRecording ? 8 : 20);
     innerSize.value = withSpring(isRecording ? 32 : 40);
+    buttonBg.value = withTiming(isRecording ? '#FFF0F0' : COLORS.secondaryLight, { duration: 300 });
+    innerBg.value = withTiming(isRecording ? '#E05858' : COLORS.primary, { duration: 300 });
   }, [isRecording]);
 
   const animatedButtonStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
-    backgroundColor: withTiming(isRecording ? '#FFF0F0' : COLORS.secondaryLight, { duration: 300 }),
+    backgroundColor: buttonBg.value,
   }));
 
   const animatedInnerStyle = useAnimatedStyle(() => ({
     width: innerSize.value,
     height: innerSize.value,
     borderRadius: innerRadius.value,
-    backgroundColor: withTiming(isRecording ? '#E05858' : COLORS.primary, { duration: 300 }),
+    backgroundColor: innerBg.value,
   }));
 
   const handlePressIn = () => {
