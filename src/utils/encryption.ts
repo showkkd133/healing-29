@@ -8,13 +8,35 @@
 // The encryption key is stored in expo-secure-store (hardware-backed keychain
 // on iOS, encrypted SharedPreferences on Android).
 
+import { Platform } from 'react-native'
 import * as Crypto from 'expo-crypto'
 import * as SecureStore from 'expo-secure-store'
 
 const KEY_ALIAS = 'healing29_encryption_key'
 
+// Web fallback: use localStorage for key storage (SecureStore is native-only)
+const webKeyStorage = {
+  getItem: (key: string) => {
+    if (typeof localStorage === 'undefined') return null
+    return localStorage.getItem(key)
+  },
+  setItem: (key: string, value: string) => {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(key, value)
+    }
+  },
+}
+
 // Generate or retrieve the encryption key from secure storage
 export const getOrCreateKey = async (): Promise<string> => {
+  if (Platform.OS === 'web') {
+    const existing = webKeyStorage.getItem(KEY_ALIAS)
+    if (existing) return existing
+    const key = Crypto.randomUUID()
+    webKeyStorage.setItem(KEY_ALIAS, key)
+    return key
+  }
+
   const existing = await SecureStore.getItemAsync(KEY_ALIAS)
   if (existing) return existing
 
