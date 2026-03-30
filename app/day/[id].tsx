@@ -20,14 +20,13 @@ import { useBadgeStore } from '@/stores/badgeStore'
 import { COLORS, SPACING, TYPOGRAPHY } from '@/constants/theme'
 import { IconLock, IconCheck } from '@/components/icons'
 import TearTransition from '@/components/shared/TearTransition'
+import FadeInView from '@/components/shared/FadeInView'
 import type { DayNumber, DayCompletionPayload, EmotionIntensity, GenericDayTaskData } from '@/types'
 
 const MAX_DAY = 29
 
 // -- Component type --
 
-// Each Day component has its own onComplete signature; we use DayCompletionPayload
-// as a common index-signature type since the router handles all 29 variants uniformly.
 type DayComponent = React.ComponentType<{ onComplete: (data: DayCompletionPayload) => void }>
 
 // -- Component mapping for all 29 days --
@@ -71,6 +70,7 @@ function DayHeader({ dayId, theme }: { dayId: number; theme: string }) {
     <View style={styles.header} accessibilityRole="header">
       <Text style={styles.dayLabel}>Day {dayId}</Text>
       <Text style={styles.dayTheme}>{theme}</Text>
+      <View style={styles.titleUnderline} />
     </View>
   )
 }
@@ -85,11 +85,11 @@ function GuidanceBlock({ text }: { text: string }) {
   )
 }
 
-// -- Locked content placeholder with unlock hint --
+// -- Locked content placeholder --
 
 function LockedContent({ dayId, daysUntilUnlock }: { dayId: number; daysUntilUnlock: number }) {
   return (
-    <View style={styles.lockedContainer} accessibilityLabel={`第${dayId}天尚未解锁`}>
+    <FadeInView style={styles.lockedContainer}>
       <View style={styles.lockedIcon}>
         <IconLock size={32} color={COLORS.textTertiary} />
       </View>
@@ -102,15 +102,15 @@ function LockedContent({ dayId, daysUntilUnlock }: { dayId: number; daysUntilUnl
           还有 {daysUntilUnlock} 天解锁
         </Text>
       )}
-    </View>
+    </FadeInView>
   )
 }
 
-// -- Already-completed placeholder with elegant checkmark --
+// -- Already-completed placeholder --
 
 function CompletedContent({ dayId }: { dayId: number }) {
   return (
-    <View style={styles.lockedContainer} accessibilityLabel={`第${dayId}天已完成`}>
+    <FadeInView style={styles.lockedContainer}>
       <View style={styles.completedCircle}>
         <IconCheck size={28} color={COLORS.success} />
       </View>
@@ -118,11 +118,11 @@ function CompletedContent({ dayId }: { dayId: number }) {
       <Text style={styles.lockedDescription}>
         你已经完成了这一天的任务，继续前行吧。
       </Text>
-    </View>
+    </FadeInView>
   )
 }
 
-// -- Helpers: extract fields from onComplete data --
+// -- Helpers --
 
 function extractMoodScore(data: DayCompletionPayload): EmotionIntensity {
   if (typeof data.moodScore === 'number') {
@@ -162,14 +162,13 @@ export default function DayScreen() {
 
   const dayId = Number(id) || 1
   const config = getDayConfig(dayId)
-  const theme = config?.theme ?? `第 ${dayId} 天`
+  const theme = config?.theme ?? `Day ${dayId}`
   const guidanceText = config?.guidanceText ?? ''
   const isLocked = dayId > currentDay
   const isAlreadyCompleted = dayId in dailyLogs
   const daysUntilUnlock = isLocked ? dayId - currentDay : 0
   const DayComponent = DAY_COMPONENTS[dayId]
 
-  // Mark day as started when page loads
   useEffect(() => {
     if (!isLocked) {
       startDay(dayId as DayNumber)
@@ -180,25 +179,13 @@ export default function DayScreen() {
     const day = dayId as DayNumber
     const moodScore = extractMoodScore(data)
     const taskData = extractTaskData(data)
-
-    // 1. Record emotion entry
     recordEmotion(day, moodScore, [])
-
-    // 2. Update day data with actual user input BEFORE completing
     updateDayData(taskData)
-
-    // 3. Complete day in journey store (saves currentDayData which now has real data)
     completeDay(day, moodScore)
-
-    // 4. Check and award badges based on task data
     checkAndAward(day, taskData)
-
-    // 5. Advance user to next day (skip on final day — no Day 30)
     if (dayId < MAX_DAY) {
       advanceDay()
     }
-
-    // Trigger tear-off animation instead of navigating immediately
     setShowTear(true)
   }
 
@@ -211,24 +198,30 @@ export default function DayScreen() {
   }
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top + 44 }]}>
+    <View style={[styles.container, { paddingTop: insets.top + 20 }]}>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <DayHeader dayId={dayId} theme={theme} />
+        <FadeInView delay={100}>
+          <DayHeader dayId={dayId} theme={theme} />
+        </FadeInView>
 
         {guidanceText.length > 0 && (
-          <GuidanceBlock text={guidanceText} />
+          <FadeInView delay={300}>
+            <GuidanceBlock text={guidanceText} />
+          </FadeInView>
         )}
 
-        {isLocked ? (
-          <LockedContent dayId={dayId} daysUntilUnlock={daysUntilUnlock} />
-        ) : isAlreadyCompleted ? (
-          <CompletedContent dayId={dayId} />
-        ) : (
-          DayComponent && <DayComponent onComplete={handleComplete} />
-        )}
+        <FadeInView delay={500} style={styles.componentContainer}>
+          {isLocked ? (
+            <LockedContent dayId={dayId} daysUntilUnlock={daysUntilUnlock} />
+          ) : isAlreadyCompleted ? (
+            <CompletedContent dayId={dayId} />
+          ) : (
+            DayComponent && <DayComponent onComplete={handleComplete} />
+          )}
+        </FadeInView>
       </ScrollView>
 
       {showTear && (
@@ -242,78 +235,91 @@ export default function DayScreen() {
   )
 }
 
-// -- Styles --
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
   },
   scrollContent: {
-    paddingHorizontal: SPACING['2xl'],
-    paddingBottom: SPACING['4xl'],
+    paddingHorizontal: SPACING['3xl'], // More extreme whitespace
+    paddingBottom: SPACING['6xl'],     // More extreme whitespace
   },
-  // Header — minimal label + title
   header: {
-    marginBottom: SPACING['2xl'],
+    marginBottom: SPACING['3xl'],
+    marginTop: SPACING.xl,
   },
   dayLabel: {
     fontSize: TYPOGRAPHY.fontSize.sm,
-    fontWeight: TYPOGRAPHY.fontWeight.medium,
-    color: COLORS.textSecondary,
-    marginBottom: 4,
+    fontWeight: TYPOGRAPHY.fontWeight.regular,
+    color: COLORS.textTertiary,
+    letterSpacing: TYPOGRAPHY.letterSpacing.wider,
+    textTransform: 'uppercase',
+    marginBottom: SPACING.xs,
   },
   dayTheme: {
-    fontSize: TYPOGRAPHY.fontSize['2xl'],
-    fontWeight: TYPOGRAPHY.fontWeight.bold,
+    fontSize: TYPOGRAPHY.fontSize['3xl'],
+    fontFamily: TYPOGRAPHY.fontFamily.serif,
     color: COLORS.text,
+    lineHeight: TYPOGRAPHY.lineHeight['3xl'],
   },
-  // Guidance — plain text
-  guidanceContainer: {
+  titleUnderline: {
+    height: 1,
+    width: 40,
+    backgroundColor: COLORS.accent,
     marginTop: SPACING.md,
-    marginBottom: SPACING['2xl'] + SPACING.sm,
+    opacity: 0.3,
+  },
+  guidanceContainer: {
+    marginBottom: SPACING['4xl'],
   },
   guidanceText: {
     fontSize: TYPOGRAPHY.fontSize.md,
     color: COLORS.textSecondary,
-    lineHeight: 29, // 17px * 1.7
+    lineHeight: 32, // Increased line height
+    fontStyle: 'italic',
+    opacity: 0.8,
   },
-  // Locked / Completed — vertically centered
-  lockedContainer: {
+  componentContainer: {
     flex: 1,
+  },
+  lockedContainer: {
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: SPACING['6xl'],
   },
   lockedIcon: {
     marginBottom: SPACING.lg,
+    opacity: 0.5,
   },
   lockedTitle: {
     fontSize: TYPOGRAPHY.fontSize.lg,
-    fontWeight: TYPOGRAPHY.fontWeight.semibold,
+    fontFamily: TYPOGRAPHY.fontFamily.serif,
     color: COLORS.text,
     marginBottom: SPACING.sm,
   },
   lockedDescription: {
-    fontSize: TYPOGRAPHY.fontSize.sm + 1,
+    fontSize: TYPOGRAPHY.fontSize.base,
     color: COLORS.textTertiary,
     textAlign: 'center',
-    lineHeight: TYPOGRAPHY.lineHeight.base,
+    lineHeight: 28,
     paddingHorizontal: SPACING.xl,
   },
   unlockHint: {
     marginTop: SPACING.lg,
     fontSize: TYPOGRAPHY.fontSize.sm,
-    color: COLORS.textSecondary,
-    fontWeight: TYPOGRAPHY.fontWeight.medium,
+    color: COLORS.accent,
+    letterSpacing: 1,
   },
   completedCircle: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#E8F5E9',
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: COLORS.backgroundPositive,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: SPACING.lg,
+    borderWidth: 1,
+    borderColor: COLORS.borderLight,
   },
 })
+

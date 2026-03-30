@@ -1,5 +1,5 @@
-// Constellation-style 29-day journey map
-// Completed days connect like stars in a night sky
+// Constellation-style 29-day journey map (Zen minimalist refactor)
+// Clean dots and lines, barely visible locked days
 
 import { useMemo, useEffect } from 'react'
 import { View, Text, Pressable, StyleSheet } from 'react-native'
@@ -24,20 +24,18 @@ interface JourneyMapProps {
 
 type DayStatus = 'completed' | 'current' | 'locked'
 
-const CELL_SIZE = 38
-const CELL_GAP = 8
+const CELL_SIZE = 30 // Smaller dots
+const CELL_GAP = 12
 const COLS = 7
 const DAYS = Array.from({ length: 29 }, (_, i) => i + 1)
 const ROWS = Math.ceil(DAYS.length / COLS)
 
-// Total grid dimensions for the SVG overlay
 const GRID_WIDTH = COLS * CELL_SIZE + (COLS - 1) * CELL_GAP
 const GRID_HEIGHT = ROWS * CELL_SIZE + (ROWS - 1) * CELL_GAP
 
 // Glow radius around completed stars
-const GLOW_RADIUS = CELL_SIZE / 2 + 4
+const GLOW_RADIUS = CELL_SIZE / 2 + 2
 
-// Compute the center point of a day cell by its 0-based index
 const getCenter = (index: number) => ({
   x: (index % COLS) * (CELL_SIZE + CELL_GAP) + CELL_SIZE / 2,
   y: Math.floor(index / COLS) * (CELL_SIZE + CELL_GAP) + CELL_SIZE / 2,
@@ -53,7 +51,6 @@ const getDayStatus = (
   return 'locked'
 }
 
-// Build the SVG path string connecting completed days in order
 const buildConstellationPath = (
   completedDays: ReadonlyArray<number>,
 ): string => {
@@ -68,58 +65,41 @@ const buildConstellationPath = (
     .join(' ')
 }
 
-// Ripple effect: 2 concentric circles expanding outward from the cell center
 function RippleEffect() {
   const scale1 = useSharedValue(0.5)
-  const scale2 = useSharedValue(0.5)
   const opacity1 = useSharedValue(0.6)
-  const opacity2 = useSharedValue(0.6)
 
   useEffect(() => {
-    scale1.value = withTiming(3, { duration: 800 })
-    opacity1.value = withTiming(0, { duration: 800 })
-    scale2.value = withDelay(200, withTiming(3, { duration: 800 }))
-    opacity2.value = withDelay(200, withTiming(0, { duration: 800 }))
-  }, [scale1, scale2, opacity1, opacity2])
+    scale1.value = withTiming(3, { duration: 1000 })
+    opacity1.value = withTiming(0, { duration: 1000 })
+  }, [scale1, opacity1])
 
-  const ring1Style = useAnimatedStyle(() => ({
+  const style = useAnimatedStyle(() => ({
     transform: [{ scale: scale1.value }],
     opacity: opacity1.value,
   }))
 
-  const ring2Style = useAnimatedStyle(() => ({
-    transform: [{ scale: scale2.value }],
-    opacity: opacity2.value,
-  }))
-
-  return (
-    <>
-      <Animated.View style={[styles.rippleRing, ring1Style]} pointerEvents="none" />
-      <Animated.View style={[styles.rippleRing, ring2Style]} pointerEvents="none" />
-    </>
-  )
+  return <Animated.View style={[styles.rippleRing, style]} pointerEvents="none" />
 }
 
-// Subtle pulse animation for the current day
 function PulsingCell({ children }: { readonly children: React.ReactNode }) {
-  const scale = useSharedValue(1)
+  const opacity = useSharedValue(0.4)
 
   useEffect(() => {
-    scale.value = withRepeat(
-      withTiming(1.03, { duration: 1400, easing: Easing.inOut(Easing.ease) }),
+    opacity.value = withRepeat(
+      withTiming(0.8, { duration: 2000, easing: Easing.inOut(Easing.ease) }),
       -1,
       true,
     )
-  }, [scale])
+  }, [opacity])
 
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
+    opacity: opacity.value,
   }))
 
   return <Animated.View style={animatedStyle}>{children}</Animated.View>
 }
 
-// SVG constellation overlay — connecting lines + glow halos beneath cells
 function ConstellationLayer({
   completedDays,
 }: {
@@ -135,12 +115,7 @@ function ConstellationLayer({
   if (completedDays.length === 0) return null
 
   return (
-    <Svg
-      width={GRID_WIDTH}
-      height={GRID_HEIGHT}
-      style={styles.svgLayer}
-    >
-      {/* Radial glow behind each completed star */}
+    <Svg width={GRID_WIDTH} height={GRID_HEIGHT} style={styles.svgLayer}>
       {glowCenters.map(({ day, x, y }) => (
         <Circle
           key={day}
@@ -148,20 +123,18 @@ function ConstellationLayer({
           cy={y}
           r={GLOW_RADIUS}
           fill={COLORS.primary}
-          opacity={0.12}
+          opacity={0.06}
         />
       ))}
-
-      {/* Constellation connecting line */}
       {pathData.length > 0 && (
         <Path
           d={pathData}
           stroke={COLORS.primary}
-          strokeWidth={1.5}
+          strokeWidth={1}
           strokeLinecap="round"
           strokeLinejoin="round"
           fill="none"
-          opacity={0.3}
+          opacity={0.15}
         />
       )}
     </Svg>
@@ -170,110 +143,74 @@ function ConstellationLayer({
 
 export function JourneyMap({ currentDay, completedDays, onDayPress, justCompletedDay }: JourneyMapProps) {
   return (
-    <View>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.title}>旅程地图</Text>
-        <Text style={styles.counter}>{completedDays.length}/29</Text>
-      </View>
+    <View style={styles.gridContainer}>
+      <ConstellationLayer completedDays={completedDays} />
+      <View style={styles.grid}>
+        {DAYS.map((day) => {
+          const status = getDayStatus(day, currentDay, completedDays)
+          const isInteractive = status !== 'locked'
 
-      {/* Grid container with constellation overlay */}
-      <View style={styles.gridContainer}>
-        {/* SVG layer sits behind the cells */}
-        <ConstellationLayer completedDays={completedDays} />
+          const cell = (
+            <Pressable
+              key={day}
+              disabled={!isInteractive}
+              onPress={() => onDayPress(day)}
+              style={({ pressed }) => [
+                styles.cell,
+                status === 'completed' && styles.cellCompleted,
+                status === 'current' && styles.cellCurrent,
+                status === 'locked' && styles.cellLocked,
+                pressed && isInteractive && styles.cellPressed,
+              ]}
+            >
+              {status === 'completed' && <View style={styles.innerDot} />}
+            </Pressable>
+          )
 
-        {/* 7-column cell grid */}
-        <View style={styles.grid}>
-          {DAYS.map((day) => {
-            const status = getDayStatus(day, currentDay, completedDays)
-            const isInteractive = status !== 'locked'
-
-            const cell = (
-              <Pressable
-                key={day}
-                disabled={!isInteractive}
-                onPress={() => onDayPress(day)}
-                style={({ pressed }) => [
-                  styles.cell,
-                  status === 'completed' && styles.cellCompleted,
-                  status === 'current' && styles.cellCurrent,
-                  status === 'locked' && styles.cellLocked,
-                  pressed && isInteractive && styles.cellPressed,
-                ]}
-                accessibilityRole="button"
-                accessibilityLabel={
-                  status === 'completed' ? `第${day}天，已完成` :
-                  status === 'current' ? `第${day}天，当前任务` :
-                  `第${day}天，未解锁`
-                }
-                accessibilityState={{ disabled: !isInteractive }}
-              >
-                {status === 'completed' ? (
-                  <IconCheck size={14} color={COLORS.white} />
-                ) : (
-                  <Text style={[
-                    styles.cellText,
-                    status === 'current' && styles.cellTextLight,
-                    status === 'locked' && styles.cellTextLocked,
-                  ]}>{day}</Text>
-                )}
-              </Pressable>
+          if (justCompletedDay === day) {
+            return (
+              <View key={day} style={styles.cellWrapper}>
+                {cell}
+                <RippleEffect />
+              </View>
             )
+          }
 
-            // Wrap in ripple container when this day was just completed
-            if (justCompletedDay === day) {
-              return (
-                <View key={day} style={styles.rippleContainer}>
-                  {cell}
-                  <RippleEffect />
-                </View>
-              )
-            }
-
-            if (status === 'current') {
-              return <PulsingCell key={day}>{cell}</PulsingCell>
-            }
-            return cell
-          })}
-        </View>
+          if (status === 'current') {
+            return <PulsingCell key={day}>{cell}</PulsingCell>
+          }
+          return cell
+        })}
       </View>
     </View>
   )
 }
 
 const styles = StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: SPACING.md,
-  },
-  title: {
-    fontSize: TYPOGRAPHY.fontSize.md,
-    fontWeight: TYPOGRAPHY.fontWeight.semibold,
-    color: COLORS.text,
-  },
-  counter: {
-    fontSize: TYPOGRAPHY.fontSize.sm,
-    color: COLORS.textSecondary,
-  },
   gridContainer: {
     position: 'relative',
+    alignSelf: 'center',
+    marginTop: SPACING.md,
   },
   svgLayer: {
     position: 'absolute',
     top: 0,
     left: 0,
-    // Sit behind the cell grid; non-interactive
     zIndex: 0,
-    pointerEvents: 'none',
   },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: CELL_GAP,
-    // Float above the SVG layer
     zIndex: 1,
+    width: GRID_WIDTH,
+    justifyContent: 'center',
+  },
+  cellWrapper: {
+    width: CELL_SIZE,
+    height: CELL_SIZE,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   cell: {
     width: CELL_SIZE,
@@ -283,42 +220,32 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   cellCompleted: {
+    backgroundColor: 'transparent',
+  },
+  innerDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
     backgroundColor: COLORS.primary,
+    opacity: 0.8,
   },
   cellCurrent: {
-    backgroundColor: COLORS.accent,
+    backgroundColor: COLORS.primary,
+    opacity: 0.6,
   },
   cellLocked: {
-    borderWidth: 1,
-    borderColor: COLORS.border,
+    backgroundColor: COLORS.primary,
+    opacity: 0.05, // Barely visible
   },
   cellPressed: {
-    opacity: 0.75,
-  },
-  cellText: {
-    fontSize: TYPOGRAPHY.fontSize.sm,
-    fontWeight: TYPOGRAPHY.fontWeight.semibold,
-  },
-  cellTextLight: {
-    color: COLORS.white,
-  },
-  cellTextLocked: {
-    color: COLORS.textTertiary,
-  },
-  // Ripple effect styles
-  rippleContainer: {
-    width: CELL_SIZE,
-    height: CELL_SIZE,
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'visible' as const,
+    opacity: 0.3,
   },
   rippleRing: {
-    position: 'absolute' as const,
+    position: 'absolute',
     width: CELL_SIZE,
     height: CELL_SIZE,
     borderRadius: CELL_SIZE / 2,
-    borderWidth: 2,
+    borderWidth: 1,
     borderColor: COLORS.primary,
   },
 })

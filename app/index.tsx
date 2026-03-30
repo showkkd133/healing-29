@@ -16,31 +16,23 @@ import Animated, {
   withSpring,
   withTiming,
 } from 'react-native-reanimated'
-import { LinearGradient } from 'expo-linear-gradient'
 import { useUserStore } from '@/stores/userStore'
 import { useEmotionStore } from '@/stores/emotionStore'
 import { useJourneyStore } from '@/stores/journeyStore'
 import { useBadgeStore } from '@/stores/badgeStore'
 import { JourneyMap } from '@/components/shared/JourneyMap'
-import { COLORS, SPACING, TYPOGRAPHY, BORDER_RADIUS } from '@/constants/theme'
+import { BreathingView } from '@/components/shared/BreathingView'
+import { COLORS, SPACING, TYPOGRAPHY } from '@/constants/theme'
 import { getStageByDay } from '@/constants/stages'
 import { DAILY_QUOTES } from '@/constants/quotes'
-import ProgressRing from '@/components/home/ProgressRing'
-import MoodTrend from '@/components/home/MoodTrend'
 import WelcomeOverlay from '@/components/home/WelcomeOverlay'
 import WeatherParticles from '@/components/home/WeatherParticles'
 import { IconBadge, IconSettings } from '@/components/icons'
 
 const TOTAL_DAYS = 29
 
-// Default moods shown when no emotion data exists yet
-const DEFAULT_MOODS: number[] = []
-
-// Encouraging tagline beneath the start button
-const ENCOURAGEMENT = '今天，给自己15分钟'
-
 // Max height for the expanded journey map content
-const JOURNEY_EXPANDED_HEIGHT = 800
+const JOURNEY_EXPANDED_HEIGHT = 450
 
 export default function HomeScreen() {
   const router = useRouter()
@@ -70,7 +62,7 @@ export default function HomeScreen() {
   const isFirstTime = userId === null
   const moods = scoreHistory.length > 0
     ? scoreHistory.map((h) => h.score as number)
-    : DEFAULT_MOODS
+    : []
 
   const avgMood = moods.length > 0
     ? Math.round(moods.reduce((a, b) => a + b, 0) / moods.length)
@@ -93,7 +85,7 @@ export default function HomeScreen() {
       const next = !prev
       journeyHeight.value = withTiming(
         next ? JOURNEY_EXPANDED_HEIGHT : 0,
-        { duration: 300 },
+        { duration: 400 },
       )
       return next
     })
@@ -101,10 +93,6 @@ export default function HomeScreen() {
 
   const handleDismissWelcome = () => {
     initUser()
-  }
-
-  const handleOpenSettings = () => {
-    router.push('/settings')
   }
 
   // Animated press scale for the start button
@@ -115,7 +103,7 @@ export default function HomeScreen() {
   }))
 
   const handlePressIn = useCallback(() => {
-    buttonScale.value = withSpring(0.95, { damping: 15, stiffness: 200 })
+    buttonScale.value = withSpring(0.98, { damping: 15, stiffness: 200 })
   }, [buttonScale])
 
   const handlePressOut = useCallback(() => {
@@ -123,113 +111,93 @@ export default function HomeScreen() {
   }, [buttonScale])
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={styles.container}>
       <WeatherParticles moodScore={avgMood} />
+      
+      {/* Decorative breathing element in background */}
+      <View style={StyleSheet.absoluteFill} pointerEvents="none">
+        <BreathingView 
+          duration={5000} 
+          range={[0.8, 1.2]} 
+          style={styles.backgroundPulse} 
+        />
+      </View>
+
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top }]}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header — minimal title + icon actions */}
+        {/* Header — minimal icons */}
         <View style={styles.header}>
-          <Text style={styles.appTitle}>29天疗愈</Text>
-          <View style={styles.headerActions}>
-            <Pressable
-              onPress={() => router.push('/badges')}
-              style={({ pressed }) => [
-                styles.iconButton,
-                pressed && styles.iconButtonPressed,
-              ]}
-              accessibilityRole="button"
-              accessibilityLabel={`查看徽章画廊，已获得${earnedCount}枚`}
-            >
-              <IconBadge size={20} color={COLORS.primary} />
-              {earnedCount > 0 && (
-                <View style={styles.badgeCount}>
-                  <Text style={styles.badgeCountText}>{earnedCount}</Text>
-                </View>
-              )}
-            </Pressable>
-            <Pressable
-              onPress={handleOpenSettings}
-              style={({ pressed }) => [
-                styles.iconButton,
-                pressed && styles.iconButtonPressed,
-              ]}
-              accessibilityRole="button"
-              accessibilityLabel="打开设置"
-            >
-              <IconSettings size={20} color={COLORS.primary} />
-            </Pressable>
-          </View>
+          <Pressable
+            onPress={() => router.push('/badges')}
+            style={styles.iconButton}
+          >
+            <IconBadge size={20} color={COLORS.textTertiary} />
+            {earnedCount > 0 && (
+              <View style={styles.badgeCount}>
+                <Text style={styles.badgeCountText}>{earnedCount}</Text>
+              </View>
+            )}
+          </Pressable>
+          <Pressable
+            onPress={() => router.push('/settings')}
+            style={styles.iconButton}
+          >
+            <IconSettings size={20} color={COLORS.textTertiary} />
+          </Pressable>
         </View>
 
-        {/* Progress ring — visual focal point, occupies ~40% of viewport */}
-        <Animated.View
-          entering={FadeIn.duration(500)}
-          style={styles.progressRingWrapper}
-        >
-          <ProgressRing currentDay={currentDay} totalDays={TOTAL_DAYS} />
+        {/* Main Title - Large Serif */}
+        <Animated.View entering={FadeIn.duration(800)} style={styles.titleSection}>
+          <Text style={styles.appTitle}>29天疗愈</Text>
+          <View style={styles.titleUnderline} />
         </Animated.View>
 
-        {/* Stage info — centered text with color dot */}
+        {/* Stage & Day Info */}
         {stage && (
           <Animated.View
-            entering={FadeIn.delay(200).duration(400)}
-            style={styles.stageInfo}
+            entering={FadeIn.delay(300).duration(600)}
+            style={styles.stageSection}
           >
-            <View style={[styles.stageDot, { backgroundColor: stage.color }]} />
+            <Text style={styles.dayText}>第 {currentDay} 天</Text>
             <Text style={styles.stageName}>{stage.name}</Text>
-            <Text style={styles.stageDescription}>{stage.description}</Text>
           </Animated.View>
         )}
 
-        {/* Daily healing quote */}
-        <Animated.View entering={FadeIn.delay(100).duration(300)}>
+        {/* Daily Quote — Focal point */}
+        <Animated.View entering={FadeIn.delay(600).duration(1000)} style={styles.quoteSection}>
           <Text style={styles.dailyQuote}>
-            「{DAILY_QUOTES[currentDay - 1] ?? ''}」
+            {DAILY_QUOTES[currentDay - 1] ?? ''}
           </Text>
         </Animated.View>
 
-        {/* CTA button — full width gradient */}
-        <Animated.View entering={SlideInUp.delay(400).duration(400).springify()}>
-          <Animated.View style={animatedButtonStyle}>
+        {/* Action Area */}
+        <View style={styles.actionSection}>
+          <Animated.View entering={FadeIn.delay(900).duration(600)} style={animatedButtonStyle}>
             <Link href={`/day/${currentDay}`} asChild>
               <Pressable
                 onPressIn={handlePressIn}
                 onPressOut={handlePressOut}
-                accessibilityRole="button"
-                accessibilityLabel="开始今日任务"
+                style={styles.zenButton}
               >
-                <LinearGradient
-                  colors={[COLORS.primary, '#6A8AA2']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.startButton}
-                >
-                  <Text style={styles.startButtonText}>开始今日任务</Text>
-                </LinearGradient>
+                <Text style={styles.zenButtonText}>开始练习</Text>
               </Pressable>
             </Link>
           </Animated.View>
-          <Text style={styles.encouragement}>{ENCOURAGEMENT}</Text>
-        </Animated.View>
+        </View>
 
-        {/* Journey map — collapsible section */}
+        {/* Simplified Journey Map */}
         <Animated.View
-          entering={FadeIn.delay(600).duration(400)}
+          entering={FadeIn.delay(1200).duration(600)}
           style={styles.journeySection}
         >
-          <Pressable
-            onPress={toggleJourney}
-            style={styles.journeyToggle}
-            accessibilityRole="button"
-            accessibilityLabel={journeyExpanded ? '收起旅程地图' : '展开旅程地图'}
-          >
-            <Text style={styles.journeyToggleTitle}>旅程地图</Text>
-            <Text style={styles.journeyToggleProgress}>
-              {completedDays.length}/{TOTAL_DAYS}
+          <Pressable onPress={toggleJourney} style={styles.journeyToggle}>
+            <Text style={styles.journeyToggleText}>
+              {journeyExpanded ? '隐于当下' : '见证旅程'}
             </Text>
           </Pressable>
+          
           <Animated.View style={animatedJourneyStyle}>
             <JourneyMap
               currentDay={currentDay}
@@ -239,19 +207,8 @@ export default function HomeScreen() {
             />
           </Animated.View>
         </Animated.View>
-
-        {/* Mood trend */}
-        {moods.length > 0 && (
-          <Animated.View
-            entering={FadeIn.delay(800).duration(400)}
-            style={styles.moodTrendWrapper}
-          >
-            <MoodTrend moods={moods} />
-          </Animated.View>
-        )}
       </ScrollView>
 
-      {/* Welcome overlay for first-time users */}
       {isFirstTime && <WelcomeOverlay onStart={handleDismissWelcome} />}
     </View>
   )
@@ -260,146 +217,130 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  backgroundPulse: {
+    position: 'absolute',
+    top: '20%',
+    left: '10%',
+    width: '80%',
+    height: '60%',
+    borderRadius: 200,
+    backgroundColor: COLORS.primary,
+    opacity: 0.03,
   },
   scrollContent: {
-    paddingHorizontal: SPACING['2xl'],
+    flexGrow: 1,
+    paddingHorizontal: SPACING['4xl'],
     paddingBottom: SPACING['6xl'],
+    alignItems: 'center',
   },
-  // Header
   header: {
+    width: '100%',
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    justifyContent: 'flex-end',
     paddingVertical: SPACING.lg,
-  },
-  appTitle: {
-    fontSize: TYPOGRAPHY.fontSize.xl,
-    fontWeight: TYPOGRAPHY.fontWeight.semibold,
-    color: COLORS.text,
-    letterSpacing: TYPOGRAPHY.letterSpacing.tight,
-  },
-  headerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
     gap: SPACING.md,
   },
   iconButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(124, 156, 180, 0.08)',
+    width: 40,
+    height: 40,
     alignItems: 'center',
     justifyContent: 'center',
-    position: 'relative',
-  },
-  iconButtonPressed: {
-    opacity: 0.6,
   },
   badgeCount: {
     position: 'absolute',
-    top: -2,
-    right: -2,
-    backgroundColor: COLORS.warning,
-    borderRadius: BORDER_RADIUS.full,
-    minWidth: 18,
-    height: 18,
+    top: 6,
+    right: 6,
+    backgroundColor: COLORS.textTertiary,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 4,
   },
   badgeCountText: {
-    color: COLORS.card,
-    fontSize: TYPOGRAPHY.fontSize.xs,
-    fontWeight: TYPOGRAPHY.fontWeight.bold,
-    lineHeight: 18,
+    color: '#FFF',
+    fontSize: 8,
+    fontWeight: '700',
   },
-  // Progress ring — generous vertical breathing room
-  progressRingWrapper: {
-    marginVertical: SPACING['4xl'],
-  },
-  // Stage info — centered, minimal
-  stageInfo: {
+  titleSection: {
+    marginTop: SPACING['6xl'],
+    marginBottom: SPACING['4xl'],
     alignItems: 'center',
-    marginBottom: SPACING['3xl'],
   },
-  stageDot: {
-    width: 8,
-    height: 8,
-    borderRadius: BORDER_RADIUS.full,
-    marginBottom: SPACING.sm,
+  appTitle: {
+    fontSize: 32,
+    fontFamily: TYPOGRAPHY.fontFamily.serif,
+    color: COLORS.text,
+    letterSpacing: 4,
+  },
+  titleUnderline: {
+    width: 20,
+    height: 1,
+    backgroundColor: COLORS.textTertiary,
+    marginTop: SPACING.md,
+    opacity: 0.3,
+  },
+  stageSection: {
+    alignItems: 'center',
+    marginBottom: SPACING['5xl'],
+  },
+  dayText: {
+    fontSize: TYPOGRAPHY.fontSize.sm,
+    color: COLORS.textTertiary,
+    letterSpacing: 2,
+    marginBottom: SPACING.xs,
+    textTransform: 'uppercase',
   },
   stageName: {
     fontSize: TYPOGRAPHY.fontSize.lg,
-    fontWeight: TYPOGRAPHY.fontWeight.semibold,
+    fontFamily: TYPOGRAPHY.fontFamily.serif,
+    color: COLORS.textSecondary,
+    opacity: 0.8,
+  },
+  quoteSection: {
+    marginVertical: SPACING['6xl'],
+    paddingHorizontal: SPACING.xl,
+  },
+  dailyQuote: {
+    fontSize: 22,
     fontFamily: TYPOGRAPHY.fontFamily.serif,
     color: COLORS.text,
-    marginBottom: SPACING.xs,
-  },
-  stageDescription: {
-    fontSize: TYPOGRAPHY.fontSize.base,
-    fontFamily: TYPOGRAPHY.fontFamily.serif,
-    color: COLORS.textSecondary,
-    lineHeight: TYPOGRAPHY.lineHeight.base,
+    lineHeight: 40,
     textAlign: 'center',
-  },
-  // Daily quote — gentle serif text
-  dailyQuote: {
-    textAlign: 'center',
-    fontSize: TYPOGRAPHY.fontSize.base,
-    fontFamily: TYPOGRAPHY.fontFamily.serif,
+    opacity: 0.9,
     fontStyle: 'italic',
-    color: COLORS.textSecondary,
-    lineHeight: TYPOGRAPHY.fontSize.base * 1.7,
-    marginVertical: 24,
   },
-  // CTA button — full width
-  startButton: {
-    height: 56,
-    borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 4,
+  actionSection: {
+    marginTop: SPACING['4xl'],
+    marginBottom: SPACING['6xl'],
   },
-  startButtonText: {
-    color: COLORS.card,
-    fontSize: TYPOGRAPHY.fontSize.md,
-    fontWeight: TYPOGRAPHY.fontWeight.semibold,
-    letterSpacing: 0.5,
+  zenButton: {
+    paddingHorizontal: SPACING['4xl'],
+    paddingVertical: SPACING.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: COLORS.textTertiary,
+    borderRadius: 30,
   },
-  encouragement: {
-    textAlign: 'center',
-    color: COLORS.textTertiary,
-    fontSize: TYPOGRAPHY.fontSize.sm,
-    marginTop: SPACING.md,
-    marginBottom: SPACING['5xl'],
+  zenButtonText: {
+    fontSize: TYPOGRAPHY.fontSize.base,
+    color: COLORS.text,
+    letterSpacing: 2,
+    fontWeight: '300',
   },
-  // Journey map — collapsible section
   journeySection: {
-    marginBottom: SPACING['3xl'],
+    width: '100%',
+    alignItems: 'center',
+    marginTop: SPACING['4xl'],
   },
   journeyToggle: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: SPACING.lg,
+    paddingVertical: SPACING.md,
+    marginBottom: SPACING.xl,
   },
-  journeyToggleTitle: {
-    fontSize: TYPOGRAPHY.fontSize.md,
-    fontWeight: TYPOGRAPHY.fontWeight.semibold,
-    color: COLORS.text,
-  },
-  journeyToggleProgress: {
-    fontSize: TYPOGRAPHY.fontSize.sm,
-    fontWeight: TYPOGRAPHY.fontWeight.medium,
-    color: COLORS.textSecondary,
-  },
-  // Mood trend
-  moodTrendWrapper: {
-    marginTop: SPACING['4xl'],
-    marginBottom: SPACING['4xl'],
+  journeyToggleText: {
+    fontSize: TYPOGRAPHY.fontSize.xs,
+    color: COLORS.textTertiary,
+    letterSpacing: 1,
   },
 })

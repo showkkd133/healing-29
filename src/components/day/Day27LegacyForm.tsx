@@ -2,13 +2,13 @@ import React from 'react'
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   ScrollView,
 } from 'react-native'
 import Animated, { FadeIn } from 'react-native-reanimated'
-import { COLORS, SPACING, BORDER_RADIUS, SHADOWS } from '@/constants/theme'
+import { COLORS, SPACING, BORDER_RADIUS, TYPOGRAPHY } from '@/constants/theme'
+import PoetryInput from '@/components/shared/PoetryInput'
 import {
   type LegacyEntry,
   LEGACY_CATEGORIES,
@@ -138,12 +138,10 @@ const Day27LegacyForm = React.memo(function Day27LegacyForm({
       {/* Add new legacy form */}
       <View style={styles.formSection}>
         <Text style={styles.sectionLabel}>遗产描述</Text>
-        <TextInput
-          style={styles.textInput}
+        <PoetryInput
           value={itemText}
           onChangeText={onChangeItemText}
           placeholder="这段关系让我获得了..."
-          placeholderTextColor={COLORS.textTertiary}
           maxLength={200}
         />
 
@@ -180,12 +178,10 @@ const Day27LegacyForm = React.memo(function Day27LegacyForm({
         {showTransform && (
           <Animated.View entering={FadeIn.duration(300)}>
             <Text style={styles.sectionLabel}>如何内化为自己的？</Text>
-            <TextInput
-              style={styles.textInput}
+            <PoetryInput
               value={transformationText}
               onChangeText={onChangeTransformationText}
               placeholder="我可以..."
-              placeholderTextColor={COLORS.textTertiary}
               maxLength={200}
             />
           </Animated.View>
@@ -206,7 +202,7 @@ const Day27LegacyForm = React.memo(function Day27LegacyForm({
 
       {/* Claim all button */}
       {legacies.length > 0 && (
-        <Animated.View entering={FadeIn.duration(300)}>
+        <Animated.View entering={FadeIn.duration(300)} style={styles.claimButtonContainer}>
           <TouchableOpacity
             style={styles.claimButton}
             onPress={onClaim}
@@ -226,142 +222,136 @@ const Day27LegacyForm = React.memo(function Day27LegacyForm({
 
 const styles = StyleSheet.create({
   guidanceText: {
-    fontSize: 20,
-    fontWeight: '500',
+    fontSize: 22,
+    fontFamily: TYPOGRAPHY.fontFamily.serif,
     color: COLORS.text,
     textAlign: 'center',
-    lineHeight: 32,
-    marginBottom: SPACING['3xl'],
+    lineHeight: 34,
+    marginBottom: SPACING['4xl'],
+    opacity: 0.9,
   },
   sectionLabel: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: COLORS.text,
-    marginBottom: SPACING.md,
-    marginTop: SPACING.xl,
+    fontSize: 14,
+    fontWeight: TYPOGRAPHY.fontWeight.medium,
+    color: COLORS.textTertiary,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+    marginBottom: SPACING.sm,
+    marginTop: SPACING['2xl'],
   },
   categoryRow: {
     flexDirection: 'row',
-    gap: SPACING.sm,
+    gap: SPACING.md,
     paddingBottom: SPACING.md,
   },
   categoryTab: {
-    paddingVertical: SPACING.sm,
-    paddingHorizontal: SPACING.xl,
-    borderRadius: BORDER_RADIUS['2xl'],
-    backgroundColor: COLORS.card,
-    borderWidth: 1,
-    borderColor: COLORS.border,
+    paddingVertical: SPACING.xs,
+    paddingBottom: SPACING.sm,
+    paddingHorizontal: SPACING.sm,
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
   },
   categoryTabActive: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
+    borderBottomColor: COLORS.accent,
   },
   categoryTabText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: COLORS.text,
+    fontSize: 15,
+    fontWeight: TYPOGRAPHY.fontWeight.regular,
+    color: COLORS.textSecondary,
   },
   categoryTabTextActive: {
-    color: COLORS.card,
+    color: COLORS.text,
+    fontWeight: TYPOGRAPHY.fontWeight.medium,
   },
   legacyList: {
     marginTop: SPACING.lg,
-    gap: SPACING.sm,
+    gap: SPACING.xl,
   },
   legacyCard: {
-    backgroundColor: COLORS.card,
-    borderRadius: BORDER_RADIUS.lg,
-    padding: SPACING.md,
-    ...SHADOWS.sm,
+    paddingVertical: SPACING.md,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.borderLight,
   },
   legacyItem: {
-    fontSize: 15,
-    fontWeight: '500',
+    fontSize: 17,
+    fontFamily: TYPOGRAPHY.fontFamily.serif,
     color: COLORS.text,
     marginBottom: SPACING.xs,
   },
   legacyOwnership: {
     fontSize: 12,
-    color: COLORS.textSecondary,
+    color: COLORS.textTertiary,
+    letterSpacing: 0.5,
   },
   legacyTransform: {
-    fontSize: 12,
+    fontSize: 14,
     color: COLORS.primary,
-    marginTop: SPACING.xs,
+    marginTop: SPACING.sm,
     fontStyle: 'italic',
+    lineHeight: 22,
   },
   formSection: {
-    marginTop: SPACING.lg,
-  },
-  textInput: {
-    backgroundColor: COLORS.card,
-    borderRadius: BORDER_RADIUS.lg,
-    paddingVertical: 12,
-    paddingHorizontal: SPACING.lg,
-    fontSize: 15,
-    color: COLORS.text,
-    borderWidth: 1,
-    borderColor: COLORS.border,
+    marginTop: SPACING.xl,
   },
   ownershipRow: {
     flexDirection: 'row',
-    gap: SPACING.sm,
+    gap: SPACING.md,
+    marginTop: SPACING.sm,
   },
   ownershipButton: {
     flex: 1,
     paddingVertical: SPACING.md,
-    borderRadius: BORDER_RADIUS.lg,
-    backgroundColor: COLORS.card,
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: COLORS.border,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.borderLight,
   },
   ownershipButtonActive: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
+    borderBottomColor: COLORS.primary,
   },
   ownershipText: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: COLORS.text,
+    fontSize: 14,
+    fontWeight: TYPOGRAPHY.fontWeight.regular,
+    color: COLORS.textTertiary,
   },
   ownershipTextActive: {
-    color: COLORS.card,
+    color: COLORS.primary,
+    fontWeight: TYPOGRAPHY.fontWeight.medium,
   },
   addButton: {
-    marginTop: SPACING.xl,
+    marginTop: SPACING['2xl'],
     paddingVertical: 12,
-    borderRadius: BORDER_RADIUS['2xl'],
-    backgroundColor: COLORS.card,
-    borderWidth: 1,
-    borderColor: COLORS.primary,
     alignItems: 'center',
   },
   addButtonDisabled: {
-    borderColor: COLORS.border,
+    opacity: 0.3,
   },
   addButtonText: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: TYPOGRAPHY.fontWeight.medium,
     color: COLORS.primary,
+    letterSpacing: 1,
   },
   addButtonTextDisabled: {
     color: COLORS.textTertiary,
   },
+  claimButtonContainer: {
+    marginTop: SPACING['4xl'],
+    marginBottom: SPACING.xl,
+  },
   claimButton: {
-    marginTop: SPACING['3xl'],
     paddingVertical: 16,
     borderRadius: BORDER_RADIUS['2xl'],
     backgroundColor: COLORS.primary,
     alignItems: 'center',
-    ...SHADOWS.lg,
+    opacity: 0.9,
   },
   claimButtonText: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: 16,
+    fontWeight: TYPOGRAPHY.fontWeight.medium,
     color: COLORS.card,
+    letterSpacing: 1,
   },
 })
 
 export default Day27LegacyForm
+

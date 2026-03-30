@@ -1,101 +1,97 @@
 // Design system tokens for the Healing Journey app
 
 export const COLORS = {
-  primary: '#7C9CB4',       // Mist blue — calm, trustworthy
-  secondary: '#F4D3D3',     // Dawn pink — warmth, tenderness
-  accent: '#F4B942',        // Amber yellow — energy, hope
-  background: '#FAF8F5',    // Paper white — soft, non-clinical
-  text: '#2C2C2C',          // Near black — readable, gentle
-  textSecondary: '#8E8E93', // System gray
-  textTertiary: '#C7C7CC',  // Light gray for hints
-  success: '#34C759',
-  warning: '#FF9500',
-  error: '#FF3B30',
-  card: '#FFFFFF',
+  primary: '#8A9A9E',       // Muted sage blue — calm, steady
+  secondary: '#D9C5B2',     // Sand beige — warmth, grounded
+  accent: '#C5A377',        // Muted gold — hope, sunlight
+  background: '#FAF9F6',    // Bone white — natural paper texture feel
+  text: '#3A3A3A',          // Soft charcoal — readable but less harsh than black
+  textSecondary: '#7A7A7A', // Muted stone gray
+  textTertiary: '#BDBDBD',  // Light mist gray
+  success: '#92A68A',       // Moss green
+  warning: '#D4A373',       // Ochre
+  error: '#C97C7C',         // Dusty rose/red
+  card: '#FDFDFB',          // Almost white, very subtle lift
   white: '#FFFFFF',
-  border: '#E5E5EA',
-  borderLight: '#E8E4DF',       // Warm gray — softer locked-cell border
-  overlay: 'rgba(0,0,0,0.4)',
-  // Stage-specific accent colors
-  stageEmergency: '#E8A0BF',
-  stageRebuild: '#A0C4E8',
-  stageEnergy: '#F4B942',
-  stageDeepHealing: '#9B8EC4',
-  stageReview: '#7C9CB4',
-  stageDisillusion: '#C4A08E',
-  stageDesensitize: '#8EC4B0',
-  stageReorganize: '#E8C4A0',
-  stageAwakening: '#A0E8C4',
-  stageRestart: '#F4D3D3',
-  // Mood spectrum colors (score 1-10, despair → joyful)
-  mood1: '#4A4A6A',   // deep indigo — despair
-  mood2: '#6B5B7B',   // muted purple — heavy
-  mood3: '#7C6B8A',   // dusty violet — sadness
-  mood4: '#8E8EA0',   // grey lavender — low
-  mood5: '#9BAFBA',   // overcast blue — neutral-low
-  mood6: '#A0C4E8',   // soft blue — neutral
-  mood7: '#B5D4A0',   // sage green — hopeful
-  mood8: '#D4E8A0',   // lime — content
-  mood9: '#F4D78E',   // warm gold — happy
-  mood10: '#F4B942',  // amber — joyful
-  // Semantic background variants
-  backgroundMuted: '#F0F0F0',    // Neutral muted — old/faded content
-  backgroundPositive: '#EBF5EB', // Soft green — positive/new content
-  // Shadow color
-  shadow: '#000000',
-  // Extended palette — tinted backgrounds & decorative
-  primaryLight: '#EDF2F7',      // Very light primary — tinted backgrounds
-  secondaryLight: '#FDF5F5',    // Very light secondary
-  accentLight: '#FEF7E6',       // Very light accent
-  textMuted: '#B0B0B0',         // Even lighter text for decorative elements
-  divider: '#F0ECE6',           // Warm divider line
+  border: '#E8E4E1',        // Very soft earth border
+  borderLight: '#F2EFED',   // Faded border
+  overlay: 'rgba(58, 58, 58, 0.2)', // Softer overlay
+  
+  // Stage-specific accent colors (Muted versions)
+  stageEmergency: '#D4B2B2',
+  stageRebuild: '#B2C2D4',
+  stageEnergy: '#D4C2B2',
+  stageDeepHealing: '#B2B2D4',
+  stageReview: '#B2D4D4',
+  stageDisillusion: '#D4C2B2',
+  stageDesensitize: '#B2D4C2',
+  stageReorganize: '#D4D4B2',
+  stageAwakening: '#C2D4B2',
+  stageRestart: '#D4B2C2',
+
+  // Mood spectrum colors (Zen transition)
+  mood1: '#4A4E54',   // deep slate
+  mood2: '#5E646B',   
+  mood3: '#727A82',   
+  mood4: '#879099',   
+  mood5: '#9BA6B0',   
+  mood6: '#AAB3BA',   
+  mood7: '#B9C0C4',   
+  mood8: '#C8CDCE',   
+  mood9: '#D7D9D8',   
+  mood10: '#E6E6E2',  
+
+  backgroundMuted: '#F5F2EF',
+  backgroundPositive: '#F0F2EE',
+  shadow: 'rgba(0, 0, 0, 0.04)', // Extremely subtle shadows
+  
+  primaryLight: '#F1F4F5',
+  secondaryLight: '#F7F4F1',
+  accentLight: '#F7F5F0',
+  textMuted: '#D1D1D1',
+  divider: '#F2EFED',
 } as const
 
 export const TYPOGRAPHY = {
-  // Font families — will resolve to system fonts on each platform
   fontFamily: {
     regular: 'System',
     medium: 'System',
     bold: 'System',
-    serif: 'Georgia',
+    serif: 'Georgia', // Primary for literary feel
   },
-  // Font sizes following an 8pt modular scale
   fontSize: {
-    xs: 11,
-    sm: 13,
-    base: 15,
-    md: 17,
-    lg: 20,
-    xl: 24,
-    '2xl': 28,
-    '3xl': 34,
-    '4xl': 40,
-  },
-  // Line heights proportional to font sizes
-  lineHeight: {
-    xs: 16,
-    sm: 18,
-    base: 22,
-    md: 24,
-    lg: 28,
-    xl: 32,
-    '2xl': 36,
-    '3xl': 42,
+    xs: 12,
+    sm: 14,
+    base: 16,
+    md: 18,
+    lg: 22,
+    xl: 26,
+    '2xl': 32,
+    '3xl': 40,
     '4xl': 48,
   },
-  // Font weights (numeric for cross-platform consistency)
-  fontWeight: {
-    regular: '400' as const,
-    medium: '500' as const,
-    semibold: '600' as const,
-    bold: '700' as const,
+  lineHeight: {
+    xs: 18,
+    sm: 22,
+    base: 26,
+    md: 30,
+    lg: 34,
+    xl: 38,
+    '2xl': 44,
+    '3xl': 52,
+    '4xl': 60,
   },
-  // Letter spacing
+  fontWeight: {
+    regular: '300' as const, // Thinner weights for Zen feel
+    medium: '400' as const,
+    semibold: '500' as const,
+    bold: '600' as const,
+  },
   letterSpacing: {
-    tight: -0.5,
-    normal: 0,
-    wide: 0.5,
-    wider: 1,
+    tight: -0.2,
+    normal: 0.5, // Wider default spacing
+    wide: 1.2,
+    wider: 2.5,
   },
 } as const
 
@@ -136,61 +132,68 @@ export const BORDER_RADIUS = {
 
 export const SHADOWS = {
   sm: {
-    shadowColor: '#000',
+    shadowColor: '#3A3A3A',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.03,
     shadowRadius: 2,
     elevation: 1,
   },
   md: {
-    shadowColor: '#000',
+    shadowColor: '#3A3A3A',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 2,
   },
   lg: {
-    shadowColor: '#000',
+    shadowColor: '#3A3A3A',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 8,
-    elevation: 5,
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    elevation: 4,
   },
   xl: {
-    shadowColor: '#000',
+    shadowColor: '#3A3A3A',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 16,
+    shadowOpacity: 0.08,
+    shadowRadius: 24,
     elevation: 8,
   },
   glow: {
-    shadowColor: '#F4B942',
+    shadowColor: '#C5A377',
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 6,
+    shadowOpacity: 0.15,
+    shadowRadius: 15,
+    elevation: 5,
   },
   soft: {
-    shadowColor: '#7C9CB4',
+    shadowColor: '#8A9A9E',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
+    shadowOpacity: 0.03,
+    shadowRadius: 8,
     elevation: 2,
   },
 } as const
 
 export const ANIMATION = {
   duration: {
-    fast: 150,
-    normal: 300,
-    slow: 500,
-    slower: 800,
+    fast: 200,
+    normal: 450,
+    slow: 800,
+    slower: 1500, // For breathing effects
+    breath: 3000, // Very slow for background elements
   },
   easing: {
     easeIn: 'ease-in',
     easeOut: 'ease-out',
     easeInOut: 'ease-in-out',
+    soft: 'cubic-bezier(0.4, 0, 0.2, 1)',
   },
+  spring: {
+    gentle: { damping: 20, stiffness: 90 },
+    bouncy: { damping: 12, stiffness: 150 },
+    slow: { damping: 30, stiffness: 50 },
+  }
 } as const
 
 // Layout constants

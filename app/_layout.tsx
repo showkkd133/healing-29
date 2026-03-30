@@ -49,9 +49,15 @@ export default function RootLayout() {
       <StatusBar style="dark" />
       <Stack
         screenOptions={{
-          headerStyle: { backgroundColor: COLORS.background },
+          headerStyle: { 
+            backgroundColor: COLORS.background,
+          },
+          headerShadowVisible: false,
           headerTintColor: COLORS.text,
-          headerTitleStyle: { fontWeight: '600' },
+          headerTitleStyle: { 
+            fontWeight: '600',
+            color: COLORS.text,
+          },
           contentStyle: { backgroundColor: COLORS.background },
           animation: 'fade_from_bottom',
           animationDuration: 250,

@@ -52,6 +52,7 @@ app.onError((err, c) => {
 
 const PORT = Number(process.env.PORT) || 3001
 
+export { app } // Export the Hono instance for Vercel
 export default {
   port: PORT,
   fetch: app.fetch,

@@ -4,6 +4,12 @@
   "installCommand": "bun install",
   "framework": null,
   "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/index" },
     { "source": "/(.*)", "destination": "/index.html" }
-  ]
+  ],
+  "functions": {
+    "api/index.ts": {
+      "runtime": "vercel-node@latest"
+    }
+  }
 }

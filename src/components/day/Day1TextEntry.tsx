@@ -1,7 +1,8 @@
 import React from 'react'
-import { TextInput, TouchableOpacity, Text, StyleSheet } from 'react-native'
+import { TouchableOpacity, Text, StyleSheet } from 'react-native'
 import Animated, { FadeIn } from 'react-native-reanimated'
-import { COLORS, SPACING, BORDER_RADIUS, SHADOWS } from '@/constants/theme'
+import { COLORS, SPACING, BORDER_RADIUS, TYPOGRAPHY } from '@/constants/theme'
+import PoetryInput from '@/components/shared/PoetryInput'
 
 // ─── Constants ─────────────────────────────────────────────────────
 
@@ -25,13 +26,12 @@ const Day1TextEntry = React.memo(function Day1TextEntry({
   const isEmpty = textEntry.trim().length === 0
 
   return (
-    <Animated.View entering={FadeIn.duration(400)} style={styles.textContainer}>
-      <TextInput
+    <Animated.View entering={FadeIn.duration(800)} style={styles.textContainer}>
+      <PoetryInput
         style={styles.textInput}
         value={textEntry}
         onChangeText={onChangeText}
         placeholder={PLACEHOLDER_TEXT}
-        placeholderTextColor={COLORS.textTertiary}
         multiline
         textAlignVertical="top"
         maxLength={2000}
@@ -53,33 +53,33 @@ const Day1TextEntry = React.memo(function Day1TextEntry({
 const styles = StyleSheet.create({
   textContainer: {
     flex: 1,
+    paddingTop: SPACING.xl,
   },
   textInput: {
-    flex: 1,
-    minHeight: 200,
-    backgroundColor: COLORS.card,
-    borderRadius: BORDER_RADIUS.lg,
-    padding: SPACING.lg,
-    fontSize: 16,
-    lineHeight: 26,
+    minHeight: 240,
+    fontSize: 17,
+    lineHeight: 30,
     color: COLORS.text,
-    ...SHADOWS.sm,
   },
   textSubmit: {
-    marginTop: SPACING.lg,
+    marginTop: SPACING['4xl'],
     paddingVertical: 14,
     borderRadius: BORDER_RADIUS['2xl'],
     backgroundColor: COLORS.primary,
     alignItems: 'center',
+    opacity: 0.9,
   },
   textSubmitDisabled: {
     backgroundColor: COLORS.border,
+    opacity: 0.4,
   },
   textSubmitLabel: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: TYPOGRAPHY.fontWeight.medium,
     color: COLORS.card,
+    letterSpacing: 1,
   },
 })
 
 export default Day1TextEntry
+
