@@ -5,11 +5,19 @@ import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-nati
 import { useRouter } from 'expo-router'
 import { TouchableOpacity } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { Feather, MaterialCommunityIcons } from '@expo/vector-icons'
 import { useBadgeStore } from '@/stores/badgeStore'
-import { BADGES } from '@/constants/badges'
+import { BADGES, type ZenBadge } from '@/constants/badges'
 import type { Badge } from '@/types'
 import { IconBack, IconClose } from '@/components/icons'
 import { COLORS, SPACING, BORDER_RADIUS, TYPOGRAPHY } from '@/constants/theme'
+
+function BadgeIcon({ badge, size, color }: { badge: ZenBadge; size: number; color: string }) {
+  if (badge.iconProvider === 'MaterialCommunityIcons') {
+    return <MaterialCommunityIcons name={badge.icon as any} size={size} color={color} />
+  }
+  return <Feather name={badge.icon as any} size={size} color={color} />
+}
 
 // Detail modal — white card with emoji, name, description
 function BadgeDetailModal({
@@ -34,7 +42,9 @@ function BadgeDetailModal({
           >
             <IconClose size={18} color={COLORS.textSecondary} />
           </TouchableOpacity>
-          <Text style={styles.modalIcon}>{badge.icon}</Text>
+          <View style={styles.modalIconWrap}>
+            <BadgeIcon badge={badge as unknown as ZenBadge} size={48} color={COLORS.primary} />
+          </View>
           <Text style={styles.modalName}>{badge.name}</Text>
           <Text style={styles.modalDesc}>{badge.description}</Text>
         </Pressable>
@@ -94,7 +104,9 @@ export default function BadgesScreen() {
             const label = isEarned ? `${badge.name}徽章，已获得` : `${badge.name}徽章，未解锁`
             const card = (
               <View style={[styles.card, isEarned ? styles.cardEarned : styles.cardLocked]} accessibilityLabel={label}>
-                <Text style={[styles.cardIcon, !isEarned && styles.cardIconLocked]}>{badge.icon}</Text>
+                <View style={[styles.cardIconWrap, !isEarned && styles.cardIconLocked]}>
+                  <BadgeIcon badge={badge} size={28} color={isEarned ? COLORS.primary : COLORS.textTertiary} />
+                </View>
                 <Text style={[styles.cardName, !isEarned && styles.cardNameLocked]} numberOfLines={1}>{badge.name}</Text>
               </View>
             )
@@ -156,7 +168,7 @@ const styles = StyleSheet.create({
   },
   cardEarned: { backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.border },
   cardLocked: { backgroundColor: 'transparent', borderWidth: 1, borderColor: COLORS.border, borderStyle: 'dashed' },
-  cardIcon: { fontSize: 36, marginBottom: SPACING.xs },
+  cardIconWrap: { marginBottom: SPACING.xs, height: 36, alignItems: 'center', justifyContent: 'center' },
   cardIconLocked: { opacity: 0.2 },
   cardName: {
     fontSize: TYPOGRAPHY.fontSize.xs, fontWeight: TYPOGRAPHY.fontWeight.medium,
@@ -170,7 +182,7 @@ const styles = StyleSheet.create({
     padding: SPACING['2xl'], alignItems: 'center', width: '72%',
   },
   modalCloseBtn: { position: 'absolute', top: SPACING.md, right: SPACING.md },
-  modalIcon: { fontSize: 48, marginBottom: SPACING.md },
+  modalIconWrap: { marginBottom: SPACING.md, alignItems: 'center', justifyContent: 'center' },
   modalName: {
     fontSize: TYPOGRAPHY.fontSize.lg, fontWeight: TYPOGRAPHY.fontWeight.bold,
     color: COLORS.text, marginBottom: SPACING.xs,
