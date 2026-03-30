@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { Platform } from 'react-native'
 import { Stack } from 'expo-router'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { StatusBar } from 'expo-status-bar'
@@ -21,6 +22,16 @@ export default function RootLayout() {
   // Initialize encryption key before store hydration reads/writes
   useEffect(() => {
     initEncryption()
+  }, [])
+
+  // Prevent horizontal overflow on web
+  useEffect(() => {
+    if (Platform.OS === 'web' && typeof document !== 'undefined') {
+      document.documentElement.style.overflowX = 'hidden'
+      document.body.style.overflowX = 'hidden'
+      document.body.style.width = '100vw'
+      document.body.style.maxWidth = '100%'
+    }
   }, [])
 
   // Hide splash screen once store is hydrated
