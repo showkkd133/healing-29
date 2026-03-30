@@ -197,31 +197,27 @@ export default function HomeScreen() {
             />
           </Animated.View>
 
-          {/* Data Section: Stats & Journey */}
-          <View style={styles.dataGrid}>
-            <View style={styles.statCol}>
-              <ZenCard variant="glass" style={styles.statCard}>
-                <Text style={styles.statVal}>{completedDays.length}</Text>
-                <Text style={styles.statKey}>DAYS DONE</Text>
-              </ZenCard>
-              <ZenCard variant="glass" style={[styles.statCard, { marginTop: SPACING.lg }]}>
-                <Text style={styles.statVal}>{avgMood || '-'}</Text>
-                <Text style={styles.statKey}>AVG MOOD</Text>
-              </ZenCard>
-            </View>
-            
-            <View style={styles.journeyCol}>
-              <ZenCard variant="glass" style={styles.journeyCard}>
-                <Text style={styles.journeyTitle}>THE PATH</Text>
-                <JourneyMap
-                  currentDay={currentDay}
-                  completedDays={completedDays}
-                  onDayPress={(day) => router.push(`/day/${day}`)}
-                  activeColor={stageColor}
-                />
-              </ZenCard>
-            </View>
+          {/* Data Section: Stats Row + Journey Map */}
+          <View style={styles.statsRow}>
+            <ZenCard variant="glass" style={styles.statCard}>
+              <Text style={styles.statVal}>{completedDays.length}</Text>
+              <Text style={styles.statKey}>DAYS DONE</Text>
+            </ZenCard>
+            <ZenCard variant="glass" style={styles.statCard}>
+              <Text style={styles.statVal}>{avgMood || '-'}</Text>
+              <Text style={styles.statKey}>AVG MOOD</Text>
+            </ZenCard>
           </View>
+
+          <ZenCard variant="glass" style={styles.journeyCard}>
+            <Text style={styles.journeyTitle}>THE PATH</Text>
+            <JourneyMap
+              currentDay={currentDay}
+              completedDays={completedDays}
+              onDayPress={(day) => router.push(`/day/${day}`)}
+              activeColor={stageColor}
+            />
+          </ZenCard>
         </View>
       </ScrollView>
 
@@ -292,14 +288,11 @@ const styles = StyleSheet.create({
 
   actionWrapper: { marginBottom: SPACING['4xl'] },
 
-  // Data Grid
-  dataGrid: { flexDirection: 'row', gap: SPACING.lg },
-  statCol: { flex: 1 },
-  statCard: { alignItems: 'center', justifyContent: 'center', paddingVertical: SPACING.xl, borderRadius: 30 },
+  // Stats & Journey
+  statsRow: { flexDirection: 'row', gap: SPACING.lg, marginBottom: SPACING.lg },
+  statCard: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: SPACING.xl, borderRadius: 30 },
   statVal: { fontSize: 32, fontWeight: '300', color: COLORS.text, marginBottom: 4 },
   statKey: { fontSize: 9, fontWeight: '700', color: COLORS.textTertiary, letterSpacing: 2 },
-  
-  journeyCol: { flex: 1.8 },
-  journeyCard: { padding: SPACING.lg, borderRadius: 35, alignItems: 'center' },
+  journeyCard: { padding: SPACING.lg, borderRadius: 35, alignItems: 'center', overflow: 'hidden' },
   journeyTitle: { fontSize: 11, fontWeight: '800', color: COLORS.textSecondary, letterSpacing: 6, marginBottom: SPACING.md },
 })
