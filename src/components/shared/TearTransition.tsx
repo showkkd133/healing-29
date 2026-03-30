@@ -7,7 +7,6 @@ import Animated, {
   withDelay,
   interpolate,
   Easing,
-  runOnJS,
 } from 'react-native-reanimated'
 import Svg, { Path } from 'react-native-svg'
 import { IconCheck } from '@/components/icons'
@@ -62,15 +61,18 @@ const TearTransition = React.memo(function TearTransition({
       easing: Easing.bezier(0.4, 0, 0.2, 1),
     })
 
-    // Phase 2: fade in completion text, then call back
+    // Phase 2: fade in completion text
     doneOpacity.value = withDelay(
       TEAR_DURATION,
-      withTiming(1, { duration: 300 }, (finished) => {
-        if (finished) {
-          runOnJS(setTimeout)(() => runOnJS(fireComplete)(), LINGER_DELAY)
-        }
-      }),
+      withTiming(1, { duration: 300 }),
     )
+
+    // Schedule completion callback after all animations finish
+    const timer = setTimeout(() => {
+      fireComplete()
+    }, TEAR_DURATION + 300 + LINGER_DELAY)
+
+    return () => clearTimeout(timer)
   }, [visible, tearProgress, doneOpacity, fireComplete])
 
   // Upper half: rotates upward and fades out
@@ -129,7 +131,7 @@ const styles = StyleSheet.create({
   bottomLayer: { ...StyleSheet.absoluteFillObject, backgroundColor: COLORS.background, ...CENTER },
   topHalf: {
     position: 'absolute', top: 0, left: 0,
-    width: SCREEN_W, height: HALF_H, transformOrigin: 'top center', overflow: 'visible',
+    width: SCREEN_W, height: HALF_H, overflow: 'visible',
   },
   topContent: { flex: 1, backgroundColor: COLORS.background },
   tearEdge: { position: 'absolute', bottom: -6, left: 0 },

@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { StyleSheet, useWindowDimensions } from 'react-native'
 import Animated, {
   useSharedValue, useAnimatedStyle,
@@ -76,10 +76,12 @@ const generateParticles = (
 const Particle = ({ config: c }: { config: ParticleConfig }) => {
   const tx = useSharedValue(0)
   const ty = useSharedValue(0)
-  const timing = { duration: c.duration, easing: Easing.linear }
-
-  tx.value = withDelay(c.delay, withRepeat(withTiming(c.dx, timing), -1, true))
-  ty.value = withDelay(c.delay, withRepeat(withTiming(c.dy, timing), -1, c.dy <= 0))
+  // Start animations inside useEffect to avoid re-triggering on re-render
+  useEffect(() => {
+    const timing = { duration: c.duration, easing: Easing.linear }
+    tx.value = withDelay(c.delay, withRepeat(withTiming(c.dx, timing), -1, true))
+    ty.value = withDelay(c.delay, withRepeat(withTiming(c.dy, timing), -1, c.dy <= 0))
+  }, [])
 
   const style = useAnimatedStyle(() => ({
     transform: [

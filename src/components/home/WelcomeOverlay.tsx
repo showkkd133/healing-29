@@ -1,6 +1,14 @@
-import { useState, useEffect, useRef } from 'react'
-import { View, Text, StyleSheet, Pressable, Animated as RNAnimated } from 'react-native'
-import Animated, { FadeIn, FadeOut } from 'react-native-reanimated'
+import { useState, useEffect } from 'react'
+import { View, Text, StyleSheet, Pressable } from 'react-native'
+import Animated, {
+  FadeIn,
+  FadeOut,
+  useSharedValue,
+  useAnimatedStyle,
+  withRepeat,
+  withSequence,
+  withTiming,
+} from 'react-native-reanimated'
 import { COLORS, SPACING, TYPOGRAPHY } from '@/constants/theme'
 import { IconPen, IconChart, IconSeedling } from '@/components/icons'
 import { useTypewriter } from '@/hooks/useTypewriter'
@@ -14,28 +22,31 @@ interface Step {
 }
 
 const STEPS: readonly Step[] = [
-  { icon: <IconPen size={32} color={COLORS.primary} />, title: '每天一个小任务', description: '用简单的练习，一步步走出低谷。' },
-  { icon: <IconChart size={32} color={COLORS.primary} />, title: '记录你的情绪变化', description: '看见自己的成长轨迹，每一天都在进步。' },
-  { icon: <IconSeedling size={32} color={COLORS.accent} />, title: '29 天后，遇见新的自己', description: '四个阶段，从疗愈到重生。' },
+  { icon: <IconPen size={48} color={COLORS.primary} />, title: '每天一个小任务', description: '用简单的练习，一步步走出低谷。' },
+  { icon: <IconChart size={48} color={COLORS.primary} />, title: '记录你的情绪变化', description: '看见自己的成长轨迹，每一天都在进步。' },
+  { icon: <IconSeedling size={48} color={COLORS.accent} />, title: '29 天后，遇见新的自己', description: '四个阶段，从疗愈到重生。' },
 ] as const
 
-// Blinking cursor for typewriter effect
+// Blinking cursor using reanimated for cross-platform (web + native) support
 function BlinkingCursor() {
-  const opacity = useRef(new RNAnimated.Value(1)).current
+  const opacity = useSharedValue(1)
 
   useEffect(() => {
-    const animation = RNAnimated.loop(
-      RNAnimated.sequence([
-        RNAnimated.timing(opacity, { toValue: 0, duration: 400, useNativeDriver: true }),
-        RNAnimated.timing(opacity, { toValue: 1, duration: 400, useNativeDriver: true }),
-      ])
+    opacity.value = withRepeat(
+      withSequence(
+        withTiming(0, { duration: 400 }),
+        withTiming(1, { duration: 400 }),
+      ),
+      -1,
     )
-    animation.start()
-    return () => animation.stop()
   }, [opacity])
 
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+  }))
+
   return (
-    <RNAnimated.Text style={[styles.cursor, { opacity }]}>|</RNAnimated.Text>
+    <Animated.Text style={[styles.cursor, animatedStyle]}>|</Animated.Text>
   )
 }
 
@@ -109,9 +120,9 @@ const styles = StyleSheet.create({
     maxWidth: 360,
   },
   iconContainer: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     backgroundColor: COLORS.primaryLight,
     alignItems: 'center' as const,
     justifyContent: 'center' as const,
