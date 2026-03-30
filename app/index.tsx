@@ -1,13 +1,11 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import {
   View,
-  Text,
   StyleSheet,
-  Pressable,
   ScrollView,
   Dimensions,
 } from 'react-native'
-import { useRouter, Link } from 'expo-router'
+import { useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { LinearGradient } from 'expo-linear-gradient'
 import Animated, {
@@ -15,7 +13,6 @@ import Animated, {
   FadeInDown,
   useSharedValue,
   useAnimatedStyle,
-  withSpring,
   withTiming,
 } from 'react-native-reanimated'
 import { useUserStore } from '@/stores/userStore'
@@ -24,15 +21,15 @@ import { useJourneyStore } from '@/stores/journeyStore'
 import { useBadgeStore } from '@/stores/badgeStore'
 import { JourneyMap } from '@/components/shared/JourneyMap'
 import { BreathingView } from '@/components/shared/BreathingView'
-import { COLORS, SPACING, TYPOGRAPHY, SHADOWS, GRADIENTS } from '@/constants/theme'
+import { COLORS, SPACING, SHADOWS, GRADIENTS, TYPOGRAPHY } from '@/constants/theme'
 import { getStageByDay } from '@/constants/stages'
 import { DAILY_QUOTES } from '@/constants/quotes'
 import WelcomeOverlay from '@/components/home/WelcomeOverlay'
 import WeatherParticles from '@/components/home/WeatherParticles'
 import { IconBadge, IconSettings } from '@/components/icons'
+import { ZenButton, ZenTypography } from '@/components/ui'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
-const TOTAL_DAYS = 29
 const JOURNEY_EXPANDED_HEIGHT = 450
 
 export default function HomeScreen() {
@@ -94,19 +91,6 @@ export default function HomeScreen() {
     initUser()
   }
 
-  const buttonScale = useSharedValue(1)
-  const animatedButtonStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: buttonScale.value }],
-  }))
-
-  const handlePressIn = useCallback(() => {
-    buttonScale.value = withSpring(0.96, { damping: 15, stiffness: 300 })
-  }, [buttonScale])
-
-  const handlePressOut = useCallback(() => {
-    buttonScale.value = withSpring(1, { damping: 15, stiffness: 300 })
-  }, [buttonScale])
-
   return (
     <View style={styles.container}>
       <LinearGradient
@@ -118,91 +102,125 @@ export default function HomeScreen() {
       
       <WeatherParticles moodScore={avgMood} />
       
-      {/* Dynamic Animated Blobs */}
+      {/* Dynamic Animated Blobs - Softened for better contrast */}
       <View style={StyleSheet.absoluteFill} pointerEvents="none">
         <BreathingView 
           duration={8000} 
-          range={[1, 1.3]} 
+          range={[1, 1.4]} 
           style={[styles.blob, styles.blob1]} 
         />
         <BreathingView 
           duration={10000} 
-          range={[1, 1.5]} 
+          range={[1, 1.6]} 
           style={[styles.blob, styles.blob2]} 
         />
         <BreathingView 
           duration={12000} 
-          range={[1, 1.2]} 
+          range={[1, 1.3]} 
           style={[styles.blob, styles.blob3]} 
         />
       </View>
 
       <ScrollView
-        contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top }]}
+        contentContainerStyle={[
+          styles.scrollContent, 
+          { 
+            paddingTop: Math.max(insets.top, SPACING.lg),
+            paddingBottom: Math.max(insets.bottom, SPACING['6xl']) 
+          }
+        ]}
         showsVerticalScrollIndicator={false}
       >
         {/* Header */}
         <View style={styles.header}>
-          <Pressable
+          <ZenButton
             onPress={() => router.push('/badges')}
+            variant="ghost"
             style={styles.iconButton}
           >
             <IconBadge size={22} color={COLORS.textSecondary} />
             {earnedCount > 0 && (
               <View style={styles.badgeCount}>
-                <Text style={styles.badgeCountText}>{earnedCount}</Text>
+                <ZenTypography size="xs" variant="bold" color="white">
+                  {earnedCount}
+                </ZenTypography>
               </View>
             )}
-          </Pressable>
-          <Pressable
+          </ZenButton>
+
+          <ZenButton
             onPress={() => router.push('/settings')}
+            variant="ghost"
             style={styles.iconButton}
           >
             <IconSettings size={22} color={COLORS.textSecondary} />
-          </Pressable>
+          </ZenButton>
         </View>
 
         {/* Main Title Section */}
         <Animated.View entering={FadeInDown.duration(1000).springify()} style={styles.titleSection}>
-          <Text style={styles.appTitle}>29天疗愈</Text>
+          <ZenTypography 
+            type="serif" 
+            size="3xl" 
+            variant="bold" 
+            align="center"
+            style={styles.appTitle}
+          >
+            29天疗愈
+          </ZenTypography>
+          
           <View style={styles.stageChip}>
-            <Text style={styles.dayLabel}>第 {currentDay} 天</Text>
+            <ZenTypography size="sm" color="textSecondary" style={styles.dayLabel}>
+              第 {currentDay} 天
+            </ZenTypography>
             <View style={styles.dot} />
-            <Text style={styles.stageLabel}>{stage?.name}</Text>
+            <ZenTypography size="sm" variant="medium" color="textSecondary">
+              {stage?.name}
+            </ZenTypography>
           </View>
         </Animated.View>
 
-        {/* Quote Section - The Heart of the UI */}
+        {/* Quote Section */}
         <Animated.View entering={FadeIn.delay(400).duration(1200)} style={styles.quoteCard}>
-          <View style={styles.quoteMarksContainer}>
-            <Text style={styles.quoteMark}>“</Text>
-          </View>
-          <Text style={styles.dailyQuote}>
+          <ZenTypography 
+            type="serif" 
+            size="2xl" 
+            color="primaryLight" 
+            style={styles.quoteMark}
+          >
+            “
+          </ZenTypography>
+          
+          <ZenTypography 
+            type="serif" 
+            size="lg" 
+            italic 
+            align="center" 
+            style={styles.dailyQuote}
+          >
             {DAILY_QUOTES[currentDay - 1] ?? ''}
-          </Text>
-          <View style={[styles.quoteMarksContainer, { alignItems: 'flex-end' }]}>
-            <Text style={styles.quoteMark}>”</Text>
-          </View>
+          </ZenTypography>
+          
+          <ZenTypography 
+            type="serif" 
+            size="2xl" 
+            color="primaryLight" 
+            align="right"
+            style={styles.quoteMark}
+          >
+            ”
+          </ZenTypography>
         </Animated.View>
 
         {/* Action Area */}
         <View style={styles.actionSection}>
-          <Animated.View entering={FadeInDown.delay(800).duration(800).springify()} style={animatedButtonStyle}>
-            <Link href={`/day/${currentDay}`} asChild>
-              <Pressable
-                onPressIn={handlePressIn}
-                onPressOut={handlePressOut}
-              >
-                <LinearGradient
-                  colors={GRADIENTS.primary as any}
-                  style={styles.mainButton}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                >
-                  <Text style={styles.mainButtonText}>开始练习</Text>
-                </LinearGradient>
-              </Pressable>
-            </Link>
+          <Animated.View entering={FadeInDown.delay(800).duration(800).springify()}>
+            <ZenButton
+              title="开始练习"
+              size="lg"
+              onPress={() => router.push(`/day/${currentDay}`)}
+              style={styles.mainButton}
+            />
           </Animated.View>
         </View>
 
@@ -211,12 +229,13 @@ export default function HomeScreen() {
           entering={FadeIn.delay(1200).duration(800)}
           style={styles.journeySection}
         >
-          <Pressable onPress={toggleJourney} style={styles.journeyToggle}>
-            <View style={styles.journeyToggleLine} />
-            <Text style={styles.journeyToggleText}>
-              {journeyExpanded ? '隐于当下' : '见证旅程'}
-            </Text>
-          </Pressable>
+          <ZenButton
+            title={journeyExpanded ? '隐于当下' : '见证旅程'}
+            variant="ghost"
+            size="sm"
+            onPress={toggleJourney}
+            style={styles.journeyToggle}
+          />
           
           <Animated.View style={animatedJourneyStyle}>
             <View style={styles.journeyMapContainer}>
@@ -244,33 +263,32 @@ const styles = StyleSheet.create({
   blob: {
     position: 'absolute',
     borderRadius: 1000,
-    opacity: 0.15,
+    opacity: 0.08, // Significantly softened for a halo effect
   },
   blob1: {
-    width: 300,
-    height: 300,
-    top: -50,
-    left: -50,
+    width: 350,
+    height: 350,
+    top: -80,
+    left: -80,
     backgroundColor: COLORS.stageRebuild,
   },
   blob2: {
-    width: 400,
-    height: 400,
-    bottom: '20%',
-    right: -100,
+    width: 450,
+    height: 450,
+    bottom: '15%',
+    right: -120,
     backgroundColor: COLORS.stageEnergy,
   },
   blob3: {
-    width: 250,
-    height: 250,
-    top: '30%',
-    left: '10%',
+    width: 280,
+    height: 280,
+    top: '25%',
+    left: '5%',
     backgroundColor: COLORS.stageDesensitize,
   },
   scrollContent: {
     flexGrow: 1,
     paddingHorizontal: SPACING.xl,
-    paddingBottom: SPACING['6xl'],
   },
   header: {
     width: '100%',
@@ -280,137 +298,92 @@ const styles = StyleSheet.create({
     gap: SPACING.sm,
   },
   iconButton: {
-    width: 44,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 22,
-    backgroundColor: 'rgba(255, 255, 255, 0.4)',
+    width: 48,
+    minHeight: 48,
+    borderRadius: 24,
+    paddingHorizontal: 0,
+    paddingVertical: 0,
   },
   badgeCount: {
     position: 'absolute',
-    top: 8,
-    right: 8,
+    top: 6,
+    right: 6,
     backgroundColor: COLORS.primary,
-    minWidth: 16,
-    height: 16,
-    borderRadius: 8,
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 4,
-  },
-  badgeCountText: {
-    color: '#FFF',
-    fontSize: 9,
-    fontWeight: '700',
+    ...SHADOWS.sm,
   },
   titleSection: {
-    marginTop: SPACING['4xl'],
+    marginTop: SPACING['5xl'],
     alignItems: 'center',
     gap: SPACING.md,
   },
   appTitle: {
-    fontSize: 36,
-    fontFamily: TYPOGRAPHY.fontFamily.serif,
-    color: COLORS.text,
-    letterSpacing: 6,
-    fontWeight: '300',
+    letterSpacing: TYPOGRAPHY.letterSpacing.wider,
   },
   stageChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    backgroundColor: 'rgba(255, 255, 255, 0.6)',
     paddingHorizontal: SPACING.lg,
     paddingVertical: SPACING.xs,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
+    borderColor: 'rgba(255, 255, 255, 0.4)',
   },
   dayLabel: {
-    fontSize: 13,
-    color: COLORS.textSecondary,
     letterSpacing: 1,
   },
   dot: {
-    width: 3,
-    height: 3,
+    width: 4,
+    height: 4,
     borderRadius: 2,
     backgroundColor: COLORS.textTertiary,
     marginHorizontal: SPACING.sm,
-  },
-  stageLabel: {
-    fontSize: 13,
-    color: COLORS.textSecondary,
-    fontWeight: '500',
+    opacity: 0.5,
   },
   quoteCard: {
     marginVertical: SPACING['6xl'],
-    paddingHorizontal: SPACING['2xl'],
+    paddingHorizontal: SPACING.xl,
     alignItems: 'center',
   },
-  quoteMarksContainer: {
-    width: '100%',
-    height: 30,
-  },
   quoteMark: {
-    fontSize: 48,
-    fontFamily: TYPOGRAPHY.fontFamily.serif,
-    color: COLORS.primaryLight,
-    opacity: 0.5,
+    width: '100%',
+    opacity: 0.4,
+    marginBottom: -SPACING.md,
   },
   dailyQuote: {
-    fontSize: 24,
-    fontFamily: TYPOGRAPHY.fontFamily.serif,
-    color: COLORS.text,
-    lineHeight: 44,
-    textAlign: 'center',
-    fontStyle: 'italic',
-    paddingVertical: SPACING.md,
+    lineHeight: 40,
+    paddingVertical: SPACING.lg,
   },
   actionSection: {
     alignItems: 'center',
     marginBottom: SPACING['6xl'],
   },
   mainButton: {
-    paddingHorizontal: SPACING['5xl'],
-    paddingVertical: SPACING.lg,
-    borderRadius: 40,
-    ...SHADOWS.md,
-  },
-  mainButtonText: {
-    fontSize: 18,
-    color: COLORS.white,
-    letterSpacing: 4,
-    fontWeight: '500',
+    minWidth: 220,
+    ...SHADOWS.glow,
   },
   journeySection: {
     width: '100%',
     alignItems: 'center',
   },
   journeyToggle: {
-    alignItems: 'center',
-    paddingVertical: SPACING.md,
-  },
-  journeyToggleLine: {
-    width: 30,
-    height: 1,
-    backgroundColor: COLORS.textTertiary,
-    marginBottom: SPACING.sm,
-    opacity: 0.4,
-  },
-  journeyToggleText: {
-    fontSize: 12,
-    color: COLORS.textTertiary,
-    letterSpacing: 2,
-    textTransform: 'uppercase',
+    marginBottom: SPACING.md,
   },
   journeyMapContainer: {
     width: SCREEN_WIDTH - SPACING.xl * 2,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    backgroundColor: 'rgba(255, 255, 255, 0.4)',
     borderRadius: 24,
     padding: SPACING.lg,
-    marginTop: SPACING.md,
+    marginTop: SPACING.sm,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+    ...SHADOWS.soft,
   },
 })
+

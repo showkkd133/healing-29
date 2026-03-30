@@ -7,7 +7,7 @@ export const COLORS = {
   secondaryLight: '#DFD3C3',
   accent: '#B08968',        // Earthy wood — tactile, warm
   accentLight: '#E6CCB2',
-  background: '#F7F5F2',    // Warm paper — natural, breathable
+  background: '#FDFCF9',    // Warm paper — natural, breathable
   text: '#2D3436',          // Dark charcoal — readable and modern
   textSecondary: '#636E72', // Slate gray — softer secondary text
   textTertiary: '#B2BEC3',  // Light mist — for metadata
@@ -46,7 +46,7 @@ export const COLORS = {
 
   backgroundMuted: '#F2EFED',
   backgroundPositive: '#F0F2EE',
-  shadow: 'rgba(0, 0, 0, 0.05)', 
+  shadow: 'rgba(0, 0, 0, 0.03)', 
   divider: '#F2EFED',
 } as const
 
@@ -87,9 +87,9 @@ export const TYPOGRAPHY = {
   },
   letterSpacing: {
     tight: -0.2,
-    normal: 0.5, // Wider default spacing
-    wide: 1.2,
-    wider: 2.5,
+    normal: 1.0, // Increased for premium feel
+    wide: 2.0,
+    wider: 4.0,
   },
 } as const
 
@@ -120,55 +120,55 @@ export const SPACING = {
 
 export const BORDER_RADIUS = {
   none: 0,
-  sm: 4,
-  md: 8,
-  lg: 12,
-  xl: 16,
-  '2xl': 24,
+  sm: 8,
+  md: 12,
+  lg: 16,
+  xl: 24,
+  '2xl': 32,
   full: 9999,
 } as const
 
 export const SHADOWS = {
   sm: {
-    shadowColor: '#3A3A3A',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 2,
+    shadowColor: '#2D3436',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.02,
+    shadowRadius: 4,
     elevation: 1,
   },
   md: {
-    shadowColor: '#3A3A3A',
-    shadowOffset: { width: 0, height: 2 },
+    shadowColor: '#2D3436',
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.04,
-    shadowRadius: 6,
+    shadowRadius: 12,
     elevation: 2,
   },
   lg: {
-    shadowColor: '#3A3A3A',
-    shadowOffset: { width: 0, height: 4 },
+    shadowColor: '#2D3436',
+    shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.06,
-    shadowRadius: 12,
+    shadowRadius: 24,
     elevation: 4,
   },
   xl: {
-    shadowColor: '#3A3A3A',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.08,
-    shadowRadius: 24,
+    shadowColor: '#2D3436',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.1,
+    shadowRadius: 48,
     elevation: 8,
   },
   glow: {
-    shadowColor: '#C5A377',
+    shadowColor: '#748C94',
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.15,
-    shadowRadius: 15,
+    shadowOpacity: 0.2,
+    shadowRadius: 20,
     elevation: 5,
   },
   soft: {
-    shadowColor: '#8A9A9E',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 8,
+    shadowColor: '#748C94',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.02,
+    shadowRadius: 20,
     elevation: 2,
   },
 } as const
