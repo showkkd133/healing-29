@@ -231,7 +231,7 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
+  container: { flex: 1, backgroundColor: COLORS.background, overflow: 'hidden' },
   aura1: { position: 'absolute', top: -100, right: -200 },
   aura2: { position: 'absolute', bottom: '15%', left: -150 },
   
