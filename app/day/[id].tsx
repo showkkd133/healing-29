@@ -19,7 +19,8 @@ import { useUserStore } from '@/stores/userStore'
 import { useEmotionStore } from '@/stores/emotionStore'
 import { useJourneyStore } from '@/stores/journeyStore'
 import { useBadgeStore } from '@/stores/badgeStore'
-import { COLORS, SPACING, TYPOGRAPHY, BORDER_RADIUS } from '@/constants/theme'
+import { COLORS, SPACING, TYPOGRAPHY, BORDER_RADIUS, SHADOWS } from '@/constants/theme'
+import { IconLock, IconCheck } from '@/components/icons'
 import type { DayNumber, DayCompletionPayload, EmotionIntensity, GenericDayTaskData } from '@/types'
 
 const MAX_DAY = 29
@@ -69,7 +70,7 @@ const DAY_COMPONENTS: Record<number, DayComponent> = {
 function DayHeader({ dayId, theme, stageColor }: { dayId: number; theme: string; stageColor: string }) {
   return (
     <View style={styles.header} accessibilityRole="header">
-      <Text style={[styles.dayBadge, { backgroundColor: stageColor, color: COLORS.white }]}>
+      <Text style={[styles.dayBadge, { backgroundColor: stageColor, color: COLORS.white }, SHADOWS.soft]}>
         Day {dayId}
       </Text>
       <Text style={styles.dayTheme}>{theme}</Text>
@@ -99,7 +100,9 @@ function GuidanceBlock({ text, stageColor }: { text: string; stageColor: string 
 function LockedContent({ dayId, daysUntilUnlock }: { dayId: number; daysUntilUnlock: number }) {
   return (
     <View style={styles.lockedContainer} accessibilityLabel={`第${dayId}天尚未解锁`}>
-      <Text style={styles.lockedIconSmall}>🔒</Text>
+      <View style={styles.lockedIcon}>
+        <IconLock size={32} color={COLORS.textTertiary} />
+      </View>
       <Text style={styles.lockedTitle}>Day {dayId} 即将解锁</Text>
       <Text style={styles.lockedDescription}>
         请先完成之前的任务，这一天的内容会在合适的时候为你开启。
@@ -119,7 +122,7 @@ function CompletedContent({ dayId }: { dayId: number }) {
   return (
     <View style={styles.lockedContainer} accessibilityLabel={`第${dayId}天已完成`}>
       <View style={styles.completedCircle}>
-        <Text style={styles.completedCheck}>✓</Text>
+        <IconCheck size={28} color={COLORS.success} />
       </View>
       <Text style={styles.lockedTitle}>Day {dayId} 已完成</Text>
       <Text style={styles.lockedDescription}>
@@ -298,7 +301,7 @@ const styles = StyleSheet.create({
   guidanceContainer: {
     marginBottom: SPACING['2xl'],
     borderLeftWidth: 3,
-    borderRadius: BORDER_RADIUS.sm,
+    borderRadius: 2,
     paddingLeft: SPACING.lg,
     paddingVertical: SPACING.md,
     paddingRight: SPACING.md,
@@ -313,8 +316,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: SPACING['6xl'],
   },
-  lockedIconSmall: {
-    fontSize: 32,
+  lockedIcon: {
     marginBottom: SPACING.lg,
   },
   lockedTitle: {
@@ -345,10 +347,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: SPACING.lg,
-  },
-  completedCheck: {
-    fontSize: 28,
-    color: COLORS.success,
-    fontWeight: TYPOGRAPHY.fontWeight.bold,
   },
 })

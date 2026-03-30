@@ -5,15 +5,20 @@ import Animated, {
   SlideInLeft, SlideOutRight, SlideInUp, LinearTransition,
 } from 'react-native-reanimated'
 import { COLORS, SPACING, TYPOGRAPHY, SHADOWS } from '@/constants/theme'
+import { IconPen, IconChart, IconSeedling } from '@/components/icons'
 
 interface WelcomeOverlayProps { onStart: () => void }
 
-interface Step { readonly emoji: string; readonly title: string; readonly description: string }
+interface Step {
+  readonly icon: React.ReactNode
+  readonly title: string
+  readonly description: string
+}
 
 const STEPS: readonly Step[] = [
-  { emoji: '📝', title: '每天一个小任务', description: '用简单的练习，一步步走出低谷。' },
-  { emoji: '📊', title: '记录你的情绪变化', description: '看见自己的成长轨迹，每一天都在进步。' },
-  { emoji: '🌱', title: '29 天后，遇见新的自己', description: '四个阶段，从疗愈到重生。' },
+  { icon: <IconPen size={48} color={COLORS.primary} />, title: '每天一个小任务', description: '用简单的练习，一步步走出低谷。' },
+  { icon: <IconChart size={48} color={COLORS.primary} />, title: '记录你的情绪变化', description: '看见自己的成长轨迹，每一天都在进步。' },
+  { icon: <IconSeedling size={48} color={COLORS.accent} />, title: '29 天后，遇见新的自己', description: '四个阶段，从疗愈到重生。' },
 ] as const
 
 // Refined welcome overlay styled like an opening booklet
@@ -48,9 +53,10 @@ export default function WelcomeOverlay({ onStart }: WelcomeOverlayProps) {
           <Pressable style={styles.tapHalf} onPress={goNext} accessibilityLabel="下一步" />
         </View>
         {/* Step content with directional transitions */}
-        <Animated.Text key={`e-${step}`} entering={entering} exiting={exiting} style={styles.emoji}>
-          {current.emoji}
-        </Animated.Text>
+        {/* Icon in circular tinted container */}
+        <Animated.View key={`e-${step}`} entering={entering} exiting={exiting} style={styles.iconContainer}>
+          {current.icon}
+        </Animated.View>
         <Animated.Text
           key={`t-${step}`}
           entering={FadeIn.delay(120).duration(250)}
@@ -130,7 +136,15 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   tapHalf: { flex: 1 },
-  emoji: { fontSize: 64, marginBottom: SPACING.xl },
+  iconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: COLORS.primaryLight,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+    marginBottom: SPACING.xl,
+  },
   title: {
     fontSize: 20,
     fontWeight: TYPOGRAPHY.fontWeight.semibold,
@@ -157,9 +171,11 @@ const styles = StyleSheet.create({
   btnWrap: { zIndex: 2 },
   btnSolid: {
     backgroundColor: COLORS.primary,
-    borderRadius: 20,
-    paddingVertical: SPACING.lg,
+    height: 52,
+    borderRadius: 26,
     paddingHorizontal: SPACING['5xl'],
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
     ...SHADOWS.md,
   },
   btnSolidText: {
@@ -168,9 +184,11 @@ const styles = StyleSheet.create({
     fontWeight: TYPOGRAPHY.fontWeight.semibold,
   },
   btnGhost: {
-    borderRadius: 20,
-    paddingVertical: SPACING.lg,
+    height: 48,
+    borderRadius: 24,
     paddingHorizontal: SPACING['5xl'],
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
   },
   btnGhostText: {
     color: COLORS.primary,

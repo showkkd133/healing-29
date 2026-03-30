@@ -12,6 +12,7 @@ import { useJourneyStore } from '@/stores/journeyStore'
 import { useBadgeStore } from '@/stores/badgeStore'
 import { BADGES, getBadgeById } from '@/constants/badges'
 import { exportAllData } from '@/services/dataExport'
+import { IconButterfly, IconExport } from '@/components/icons'
 import { COLORS, SPACING } from '@/constants/theme'
 import {
   styles, CHART_WIDTH, CHART_HEIGHT, CHART_PADDING, STATS_CARD_COLORS,
@@ -32,7 +33,9 @@ function CelebrationHeader() {
   return (
     <View style={styles.celebrationContainer}>
       <View style={styles.gradientOverlay} />
-      <Text style={styles.celebrationEmoji}>🦋</Text>
+      <View style={styles.celebrationIcon}>
+        <IconButterfly size={64} color={COLORS.accent} />
+      </View>
       <Text style={styles.celebrationTitle}>你做到了</Text>
       <Text style={styles.celebrationSubtitle}>29 天疗愈之旅，圆满完成</Text>
       {/* Decorative gold line */}
@@ -196,6 +199,7 @@ function ActionButtons({ onExport, onGoHome }: { readonly onExport: () => void; 
     <View style={styles.actionContainer}>
       {/* Export uses ghost style */}
       <Pressable style={styles.ghostButton} onPress={onExport}>
+        <IconExport size={18} color={COLORS.primary} />
         <Text style={styles.ghostButtonText}>导出旅程报告</Text>
       </Pressable>
       {/* Home uses primary filled style */}

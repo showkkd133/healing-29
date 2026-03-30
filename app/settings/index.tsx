@@ -15,6 +15,7 @@ import { useJourneyStore } from '@/stores/journeyStore'
 import { useEmotionStore } from '@/stores/emotionStore'
 import { useBadgeStore } from '@/stores/badgeStore'
 import { exportAllData } from '@/services/dataExport'
+import { IconBack, IconForward, IconExport, IconReset, IconWarning } from '@/components/icons'
 import { COLORS, SPACING, BORDER_RADIUS, TYPOGRAPHY, SHADOWS } from '@/constants/theme'
 import type { DayNumber, PrivacyLevel } from '@/types'
 
@@ -152,7 +153,7 @@ export default function SettingsScreen() {
           accessibilityRole="button"
           accessibilityLabel="返回"
         >
-          <Text style={styles.backArrow}>←</Text>
+          <IconBack size={20} color={COLORS.primary} />
         </Pressable>
         <Text style={styles.headerTitle}>设置</Text>
         <View style={styles.headerSpacer} />
@@ -257,29 +258,32 @@ export default function SettingsScreen() {
           </View>
           <View style={[styles.card, SHADOWS.sm]}>
             <Pressable style={styles.actionRow} onPress={handleExportData} accessibilityRole="button">
-              <Text style={styles.actionText}>导出我的数据</Text>
-              <Text style={styles.actionArrow}>→</Text>
+              <View style={styles.actionWithIcon}>
+                <IconExport size={18} color={COLORS.primary} />
+                <Text style={styles.actionText}>导出我的数据</Text>
+              </View>
+              <IconForward size={16} color={COLORS.primary} />
             </Pressable>
             <View style={styles.divider} />
             <Pressable style={styles.actionRow} onPress={handleResetJourney}>
               <View style={styles.actionWithIcon}>
-                <Text style={styles.resetIcon}>↻</Text>
+                <IconReset size={16} color={COLORS.primary} />
                 <Text style={styles.actionText}>重置旅程</Text>
               </View>
-              <Text style={styles.actionArrow}>→</Text>
+              <IconForward size={16} color={COLORS.primary} />
             </Pressable>
           </View>
 
           {/* Danger zone: clear all data as a standalone red card */}
           <Pressable style={[styles.dangerCard, SHADOWS.sm]} onPress={handleClearAllData}>
             <View style={styles.dangerCardContent}>
-              <Text style={styles.dangerIcon}>⚠</Text>
+              <IconWarning size={20} color={COLORS.error} />
               <View style={styles.dangerTextContainer}>
                 <Text style={styles.dangerTitle}>清除所有数据</Text>
                 <Text style={styles.dangerDescription}>永久删除所有数据，不可撤销</Text>
               </View>
             </View>
-            <Text style={styles.dangerArrow}>→</Text>
+            <IconForward size={16} color={COLORS.error} />
           </Pressable>
         </View>
 
@@ -371,10 +375,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  backArrow: {
-    fontSize: TYPOGRAPHY.fontSize.lg,
-    color: COLORS.primary,
-  },
+  // backArrow style removed — replaced by IconBack SVG component
   headerTitle: {
     fontSize: TYPOGRAPHY.fontSize.xl,
     fontWeight: TYPOGRAPHY.fontWeight.bold,
@@ -517,33 +518,26 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
   },
 
-  // Action rows
+  // Action rows — unified height and alignment
   actionRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: SPACING.lg,
+    height: 52,
+    paddingHorizontal: SPACING.lg,
   },
   actionWithIcon: {
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  resetIcon: {
-    fontSize: TYPOGRAPHY.fontSize.md,
-    color: COLORS.primary,
-    marginRight: SPACING.xs,
+    gap: SPACING.xs,
   },
   actionText: {
     fontSize: TYPOGRAPHY.fontSize.base + 1,
     fontWeight: TYPOGRAPHY.fontWeight.semibold,
     color: COLORS.primary,
   },
-  actionArrow: {
-    fontSize: TYPOGRAPHY.fontSize.md + 1,
-    color: COLORS.primary,
-  },
 
-  // Danger card for "clear all data"
+  // Danger card for "clear all data" — unified row height
   dangerCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -552,17 +546,16 @@ const styles = StyleSheet.create({
     borderRadius: BORDER_RADIUS.xl,
     borderWidth: 1,
     borderColor: `${COLORS.error}20`,
-    padding: SPACING.lg,
+    minHeight: 52,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.sm,
     marginTop: SPACING.md,
   },
   dangerCardContent: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
-  },
-  dangerIcon: {
-    fontSize: TYPOGRAPHY.fontSize.lg,
-    marginRight: SPACING.md,
+    gap: SPACING.md,
   },
   dangerTextContainer: {
     flex: 1,
@@ -577,10 +570,7 @@ const styles = StyleSheet.create({
     fontSize: TYPOGRAPHY.fontSize.sm,
     color: `${COLORS.error}99`,
   },
-  dangerArrow: {
-    fontSize: TYPOGRAPHY.fontSize.md + 1,
-    color: COLORS.error,
-  },
+  // dangerArrow style removed — replaced by IconForward SVG component
 
   // About rows
   aboutRow: {

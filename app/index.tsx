@@ -26,6 +26,7 @@ import { getStageByDay } from '@/constants/stages'
 import ProgressRing from '@/components/home/ProgressRing'
 import MoodTrend from '@/components/home/MoodTrend'
 import WelcomeOverlay from '@/components/home/WelcomeOverlay'
+import { IconBadge, IconSettings } from '@/components/icons'
 
 const TOTAL_DAYS = 29
 
@@ -107,11 +108,14 @@ export default function HomeScreen() {
             {/* Badge gallery entry */}
             <Pressable
               onPress={() => router.push('/badges')}
-              style={styles.iconButton}
+              style={({ pressed }) => [
+                styles.iconButton,
+                pressed && styles.iconButtonPressed,
+              ]}
               accessibilityRole="button"
               accessibilityLabel={`查看徽章画廊，已获得${earnedCount}枚`}
             >
-              <Text style={styles.iconText}>🏅</Text>
+              <IconBadge size={20} color={COLORS.primary} />
               {earnedCount > 0 && (
                 <View style={styles.badgeCount}>
                   <Text style={styles.badgeCountText}>{earnedCount}</Text>
@@ -120,11 +124,14 @@ export default function HomeScreen() {
             </Pressable>
             <Pressable
               onPress={handleOpenSettings}
-              style={styles.iconButton}
+              style={({ pressed }) => [
+                styles.iconButton,
+                pressed && styles.iconButtonPressed,
+              ]}
               accessibilityRole="button"
               accessibilityLabel="打开设置"
             >
-              <Text style={styles.iconText}>⚙️</Text>
+              <IconSettings size={20} color={COLORS.primary} />
             </Pressable>
           </View>
         </View>
@@ -235,16 +242,16 @@ const styles = StyleSheet.create({
     gap: SPACING.sm,
   },
   iconButton: {
-    width: 40,
-    height: 40,
-    borderRadius: BORDER_RADIUS.full,
-    backgroundColor: `${COLORS.primary}10`,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(124, 156, 180, 0.08)',
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
   },
-  iconText: {
-    fontSize: TYPOGRAPHY.fontSize.md,
+  iconButtonPressed: {
+    opacity: 0.6,
   },
   badgeCount: {
     position: 'absolute',
@@ -296,9 +303,10 @@ const styles = StyleSheet.create({
   },
   // Start button
   startButton: {
-    borderRadius: BORDER_RADIUS['2xl'],
-    paddingVertical: SPACING.xl,
+    height: 56,
+    borderRadius: 28,
     alignItems: 'center',
+    justifyContent: 'center',
     shadowColor: COLORS.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
@@ -307,8 +315,9 @@ const styles = StyleSheet.create({
   },
   startButtonText: {
     color: COLORS.card,
-    fontSize: TYPOGRAPHY.fontSize.md,
+    fontSize: 17,
     fontWeight: TYPOGRAPHY.fontWeight.semibold,
+    letterSpacing: 0.5,
   },
   encouragement: {
     textAlign: 'center',

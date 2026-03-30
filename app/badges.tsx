@@ -12,10 +12,10 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { Ionicons } from '@expo/vector-icons'
 import { useBadgeStore } from '@/stores/badgeStore'
 import { BADGES } from '@/constants/badges'
 import type { Badge } from '@/types'
+import { IconBack, IconClose, IconLock } from '@/components/icons'
 import { COLORS, SPACING, BORDER_RADIUS, TYPOGRAPHY, SHADOWS } from '@/constants/theme'
 
 const CATEGORY_LABELS: Record<string, { emoji: string; text: string }> = {
@@ -82,8 +82,13 @@ function BadgeDetailModal({
           {earnedDate && (
             <Text style={styles.modalDate}>获得于 {earnedDate}</Text>
           )}
-          <TouchableOpacity style={styles.modalClose} onPress={onClose}>
-            <Text style={styles.modalCloseText}>关闭</Text>
+          <TouchableOpacity
+            style={styles.modalCloseButton}
+            onPress={onClose}
+            accessibilityRole="button"
+            accessibilityLabel="关闭"
+          >
+            <IconClose size={20} color={COLORS.textSecondary} />
           </TouchableOpacity>
         </Pressable>
       </Pressable>
@@ -151,8 +156,9 @@ export default function BadgesScreen() {
           hitSlop={12}
           accessibilityRole="button"
           accessibilityLabel="返回"
+          style={styles.backButton}
         >
-          <Ionicons name="chevron-back" size={24} color={COLORS.text} />
+          <IconBack size={20} color={COLORS.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>徽章画廊</Text>
         <Text style={styles.headerCount}>{earnedCount}/{totalCount}</Text>
@@ -209,7 +215,7 @@ export default function BadgesScreen() {
                     {/* Lock badge in top-left corner for locked badges */}
                     {!isEarned && (
                       <View style={styles.lockIcon}>
-                        <Ionicons name="lock-closed" size={10} color={COLORS.textTertiary} />
+                        <IconLock size={12} color={COLORS.textTertiary} />
                       </View>
                     )}
                     <Text style={[styles.badgeIcon, !isEarned && styles.badgeIconLocked]}>
@@ -273,6 +279,15 @@ export default function BadgesScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
+  // Circular back button — 44x44 tap target
+  backButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: COLORS.card,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -450,15 +465,16 @@ const styles = StyleSheet.create({
     color: COLORS.textTertiary,
     marginBottom: SPACING.lg,
   },
-  modalClose: {
-    paddingVertical: SPACING.sm,
-    paddingHorizontal: SPACING['2xl'],
-    backgroundColor: COLORS.accent,
-    borderRadius: BORDER_RADIUS.lg,
-  },
-  modalCloseText: {
-    fontSize: TYPOGRAPHY.fontSize.sm,
-    fontWeight: TYPOGRAPHY.fontWeight.semibold,
-    color: COLORS.white,
+  // Circular close button — 36x36, positioned top-right of modal card
+  modalCloseButton: {
+    position: 'absolute',
+    top: SPACING.md,
+    right: SPACING.md,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: COLORS.background,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 })

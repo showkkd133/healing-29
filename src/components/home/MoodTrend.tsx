@@ -6,23 +6,29 @@ import Svg, {
 } from 'react-native-svg'
 import { LinearGradient } from 'expo-linear-gradient'
 import { COLORS, SPACING, TYPOGRAPHY, BORDER_RADIUS } from '@/constants/theme'
+import { IconSeedling } from '@/components/icons'
 
 interface MoodTrendProps {
   moods: number[]
 }
 
+// Trend arrow colors
+const TREND_UP_COLOR = COLORS.accent
+const TREND_FLAT_COLOR = COLORS.textSecondary
+const TREND_DOWN_COLOR = '#E8636C'
+
 // Compute trend direction from mood data
-const getTrendIndicator = (moods: readonly number[]): { label: string; symbol: string } => {
-  if (moods.length < 2) return { label: '平稳', symbol: '→' }
+const getTrendIndicator = (moods: readonly number[]): { label: string; symbol: string; color: string } => {
+  if (moods.length < 2) return { label: '平稳', symbol: '→', color: TREND_FLAT_COLOR }
   const mid = Math.floor(moods.length / 2)
   const firstHalf = moods.slice(0, mid)
   const secondHalf = moods.slice(mid)
   const avgFirst = firstHalf.reduce((s, v) => s + v, 0) / firstHalf.length
   const avgSecond = secondHalf.reduce((s, v) => s + v, 0) / secondHalf.length
   const diff = avgSecond - avgFirst
-  if (diff > 0.3) return { label: '上升', symbol: '↗' }
-  if (diff < -0.3) return { label: '下降', symbol: '↘' }
-  return { label: '平稳', symbol: '→' }
+  if (diff > 0.3) return { label: '上升', symbol: '↗', color: TREND_UP_COLOR }
+  if (diff < -0.3) return { label: '下降', symbol: '↘', color: TREND_DOWN_COLOR }
+  return { label: '平稳', symbol: '→', color: TREND_FLAT_COLOR }
 }
 
 // Soft red for min-score labels (gentler than COLORS.error)
@@ -43,7 +49,9 @@ export default function MoodTrend({ moods }: MoodTrendProps) {
         <View style={styles.cardContent}>
           <Text style={styles.moodTrendTitle}>最近情绪趋势</Text>
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyEmoji}>🌱</Text>
+            <View style={styles.emptyIconWrapper}>
+              <IconSeedling size={40} color={COLORS.primary} />
+            </View>
             <Text style={styles.emptyTitle}>还没有记录</Text>
             <Text style={styles.emptyHint}>
               完成每日任务后，你的情绪变化会在这里呈现
@@ -111,7 +119,7 @@ export default function MoodTrend({ moods }: MoodTrendProps) {
         {/* Title row with trend indicator */}
         <View style={styles.titleRow}>
           <Text style={styles.moodTrendTitle}>最近情绪趋势</Text>
-          <Text style={styles.trendBadge}>
+          <Text style={[styles.trendBadge, { color: trend.color }]}>
             {trend.symbol} {trend.label}
           </Text>
         </View>
@@ -255,8 +263,13 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
     borderRadius: BORDER_RADIUS.lg,
   },
-  emptyEmoji: {
-    fontSize: 36,
+  emptyIconWrapper: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: COLORS.primaryLight,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
     marginBottom: SPACING.sm,
   },
   emptyTitle: {

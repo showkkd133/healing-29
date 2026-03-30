@@ -14,6 +14,7 @@ import Animated, {
 } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import * as Haptics from 'expo-haptics'
+import { IconClose } from '@/components/icons'
 import { useBadgeStore } from '@/stores/badgeStore'
 import { BADGES } from '@/constants/badges'
 import { COLORS, SPACING, BORDER_RADIUS, SHADOWS, TYPOGRAPHY } from '@/constants/theme'
@@ -116,11 +117,11 @@ export default function BadgeToast() {
         {/* Close button */}
         <Pressable
           onPress={dismiss}
-          style={styles.closeBtn}
+          style={({ pressed }) => [styles.closeBtn, pressed && styles.closeBtnPressed]}
           hitSlop={8}
           accessibilityLabel="关闭"
         >
-          <Text style={styles.closeIcon}>×</Text>
+          <IconClose size={14} color={COLORS.textTertiary} />
         </Pressable>
       </Pressable>
     </Animated.View>
@@ -198,11 +199,13 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: SPACING.sm,
     right: SPACING.md,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  closeIcon: {
-    fontSize: TYPOGRAPHY.fontSize.lg,
-    color: COLORS.textTertiary,
-    fontWeight: TYPOGRAPHY.fontWeight.regular,
-    lineHeight: TYPOGRAPHY.lineHeight.lg,
+  closeBtnPressed: {
+    opacity: 0.5,
   },
 })

@@ -9,6 +9,7 @@ import Animated, {
   withTiming,
   Easing,
 } from 'react-native-reanimated'
+import { IconCheck } from '@/components/icons'
 import { STAGES } from '@/constants/stages'
 import { COLORS, SPACING, BORDER_RADIUS, TYPOGRAPHY, SHADOWS } from '@/constants/theme'
 
@@ -39,7 +40,7 @@ function PulsingCell({ children }: { readonly children: React.ReactNode }) {
 
   useEffect(() => {
     scale.value = withRepeat(
-      withTiming(1.08, { duration: 1200, easing: Easing.inOut(Easing.ease) }),
+      withTiming(1.05, { duration: 1200, easing: Easing.inOut(Easing.ease) }),
       -1,
       true,
     )
@@ -101,7 +102,7 @@ function DayCell({
       accessibilityState={{ disabled: !isInteractive }}
     >
       {status === 'completed' ? (
-        <Text style={styles.checkmark}>✓</Text>
+        <IconCheck size={16} color={COLORS.white} />
       ) : (
         <Text style={textStyle}>{day}</Text>
       )}
@@ -295,10 +296,5 @@ const styles = StyleSheet.create({
   },
   cellTextLocked: {
     color: COLORS.textSecondary,
-  },
-  checkmark: {
-    color: COLORS.white,
-    fontSize: TYPOGRAPHY.fontSize.base,
-    fontWeight: TYPOGRAPHY.fontWeight.bold,
   },
 })

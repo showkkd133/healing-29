@@ -38,8 +38,7 @@ export const styles = StyleSheet.create({
     opacity: 0.6,
     borderRadius: BORDER_RADIUS['2xl'],
   },
-  celebrationEmoji: {
-    fontSize: 72,
+  celebrationIcon: {
     marginBottom: SPACING.lg,
   },
   celebrationTitle: {
@@ -182,26 +181,30 @@ export const styles = StyleSheet.create({
   actionContainer: {
     gap: SPACING.md,
   },
-  // Ghost button for export
+  // Ghost button for export — icon + text side by side
   ghostButton: {
+    flexDirection: 'row',
     backgroundColor: 'transparent',
-    borderRadius: BORDER_RADIUS.xl,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    paddingVertical: SPACING.lg,
+    height: 52,
+    borderRadius: 26,
+    borderWidth: 1.5,
+    borderColor: COLORS.primary,
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: SPACING.sm,
   },
   ghostButtonText: {
     fontSize: TYPOGRAPHY.fontSize.md,
     fontWeight: TYPOGRAPHY.fontWeight.medium,
-    color: COLORS.textSecondary,
+    color: COLORS.primary,
   },
   // Primary filled button for home
   primaryButton: {
     backgroundColor: COLORS.primary,
-    borderRadius: BORDER_RADIUS.xl,
-    paddingVertical: SPACING.lg,
+    height: 52,
+    borderRadius: 26,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   primaryButtonText: {
     fontSize: TYPOGRAPHY.fontSize.md,
