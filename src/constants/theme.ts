@@ -1,54 +1,52 @@
 // Design system tokens for the Healing Journey app
 
 export const COLORS = {
-  primary: '#8A9A9E',       // Muted sage blue — calm, steady
-  secondary: '#D9C5B2',     // Sand beige — warmth, grounded
-  accent: '#C5A377',        // Muted gold — hope, sunlight
-  background: '#FAF9F6',    // Bone white — natural paper texture feel
-  text: '#3A3A3A',          // Soft charcoal — readable but less harsh than black
-  textSecondary: '#7A7A7A', // Muted stone gray
-  textTertiary: '#BDBDBD',  // Light mist gray
-  success: '#92A68A',       // Moss green
-  warning: '#D4A373',       // Ochre
-  error: '#C97C7C',         // Dusty rose/red
-  card: '#FDFDFB',          // Almost white, very subtle lift
+  primary: '#748C94',       // Deep sage — calm, steady
+  primaryLight: '#A7BBC2',
+  secondary: '#C7B198',     // Warm mud — grounded
+  secondaryLight: '#DFD3C3',
+  accent: '#B08968',        // Earthy wood — tactile, warm
+  accentLight: '#E6CCB2',
+  background: '#F7F5F2',    // Warm paper — natural, breathable
+  text: '#2D3436',          // Dark charcoal — readable and modern
+  textSecondary: '#636E72', // Slate gray — softer secondary text
+  textTertiary: '#B2BEC3',  // Light mist — for metadata
+  success: '#829460',       // Deep moss
+  warning: '#E9B384',       // Muted orange
+  error: '#AF7E7E',         // Dusty rose
+  card: '#FFFFFF',          
   white: '#FFFFFF',
-  border: '#E8E4E1',        // Very soft earth border
-  borderLight: '#F2EFED',   // Faded border
-  overlay: 'rgba(58, 58, 58, 0.2)', // Softer overlay
+  border: '#E8E4E1',        
+  borderLight: '#F2EFED',   
+  overlay: 'rgba(45, 52, 54, 0.15)', 
   
-  // Stage-specific accent colors (Muted versions)
-  stageEmergency: '#D4B2B2',
-  stageRebuild: '#B2C2D4',
-  stageEnergy: '#D4C2B2',
-  stageDeepHealing: '#B2B2D4',
-  stageReview: '#B2D4D4',
-  stageDisillusion: '#D4C2B2',
-  stageDesensitize: '#B2D4C2',
-  stageReorganize: '#D4D4B2',
-  stageAwakening: '#C2D4B2',
-  stageRestart: '#D4B2C2',
+  // Stage-specific accent colors (More sophisticated)
+  stageEmergency: '#E9B3B3', // Soft coral
+  stageRebuild: '#B3C8E9',   // Misty blue
+  stageEnergy: '#E9D7B3',    // Sunlit sand
+  stageDeepHealing: '#C8B3E9', // Soft lavender
+  stageReview: '#B3E9E9',    // Pale teal
+  stageDisillusion: '#E9C8B3', // Clay
+  stageDesensitize: '#B3E9C8', // Sea foam
+  stageReorganize: '#DCE9B3', // Sprout
+  stageAwakening: '#CBE9B3', // Pale lime
+  stageRestart: '#E9B3D7',   // Petal pink
 
-  // Mood spectrum colors (Zen transition)
-  mood1: '#4A4E54',   // deep slate
-  mood2: '#5E646B',   
-  mood3: '#727A82',   
-  mood4: '#879099',   
-  mood5: '#9BA6B0',   
-  mood6: '#AAB3BA',   
-  mood7: '#B9C0C4',   
-  mood8: '#C8CDCE',   
-  mood9: '#D7D9D8',   
-  mood10: '#E6E6E2',  
+  // Mood spectrum (Fluid transitions)
+  mood1: '#4B5D67',   
+  mood2: '#5F717B',   
+  mood3: '#73858F',   
+  mood4: '#8799A3',   
+  mood5: '#9BADB7',   
+  mood6: '#AFC1CB',   
+  mood7: '#C3D5DF',   
+  mood8: '#D7E9F3',   
+  mood9: '#EBFDFF',   
+  mood10: '#FFFFFF',  
 
-  backgroundMuted: '#F5F2EF',
+  backgroundMuted: '#F2EFED',
   backgroundPositive: '#F0F2EE',
-  shadow: 'rgba(0, 0, 0, 0.04)', // Extremely subtle shadows
-  
-  primaryLight: '#F1F4F5',
-  secondaryLight: '#F7F4F1',
-  accentLight: '#F7F5F0',
-  textMuted: '#D1D1D1',
+  shadow: 'rgba(0, 0, 0, 0.05)', 
   divider: '#F2EFED',
 } as const
 
@@ -206,12 +204,15 @@ export const LAYOUT = {
 } as const
 
 export const GRADIENTS = {
-  primary: ['#7C9CB4', '#6688A0'],         // Mist blue gradient
-  accent: ['#F4B942', '#E8A830'],           // Amber gradient
-  warm: ['#F4D3D3', '#FAF8F5'],             // Dawn pink to paper white
-  healing: ['#7C9CB4', '#F4B942'],          // Primary to accent
-  card: ['#FFFFFF', '#FAFAFA'],             // Subtle card gradient
-  hero: ['#FAF8F5', '#F0ECE6'],             // Hero section
+  primary: ['#748C94', '#4B5D67'],
+  healing: ['#A7BBC2', '#F7F5F2'],         // Main background soft gradient
+  dawn: ['#F6D5F7', '#FBE9D7'],            // Soft morning feel
+  peace: ['#B3C8E9', '#EBFDFF'],           // Calm sky
+  nature: ['#CBE9B3', '#F7F5F2'],          // Fresh grass
+  warmth: ['#E9D7B3', '#FBFAF8'],          // Gentle sunlight
+  card: ['#FFFFFF', '#FDFDFB'],
+  button: ['#748C94', '#8A9A9E'],
+  hero: ['#F7F5F2', '#E8E4E1'],
 } as const
 
 export const DECORATIVE = {
