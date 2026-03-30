@@ -43,6 +43,12 @@ export const COLORS = {
   backgroundPositive: '#EBF5EB', // Soft green — positive/new content
   // Shadow color
   shadow: '#000000',
+  // Extended palette — tinted backgrounds & decorative
+  primaryLight: '#EDF2F7',      // Very light primary — tinted backgrounds
+  secondaryLight: '#FDF5F5',    // Very light secondary
+  accentLight: '#FEF7E6',       // Very light accent
+  textMuted: '#B0B0B0',         // Even lighter text for decorative elements
+  divider: '#F0ECE6',           // Warm divider line
 } as const
 
 export const TYPOGRAPHY = {
@@ -157,6 +163,20 @@ export const SHADOWS = {
     shadowRadius: 16,
     elevation: 8,
   },
+  glow: {
+    shadowColor: '#F4B942',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  soft: {
+    shadowColor: '#7C9CB4',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 2,
+  },
 } as const
 
 export const ANIMATION = {
@@ -180,4 +200,26 @@ export const LAYOUT = {
   headerHeight: 56,
   tabBarHeight: 80,
   maxContentWidth: 480,
+} as const
+
+export const GRADIENTS = {
+  primary: ['#7C9CB4', '#6688A0'],         // Mist blue gradient
+  accent: ['#F4B942', '#E8A830'],           // Amber gradient
+  warm: ['#F4D3D3', '#FAF8F5'],             // Dawn pink to paper white
+  healing: ['#7C9CB4', '#F4B942'],          // Primary to accent
+  card: ['#FFFFFF', '#FAFAFA'],             // Subtle card gradient
+  hero: ['#FAF8F5', '#F0ECE6'],             // Hero section
+} as const
+
+export const DECORATIVE = {
+  lineWidth: {
+    thin: 1,
+    regular: 2,
+    thick: 3,
+    accent: 4,
+  },
+  pillPadding: {
+    horizontal: 12,
+    vertical: 4,
+  },
 } as const

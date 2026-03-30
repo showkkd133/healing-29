@@ -5,8 +5,15 @@ import {
 
 // Chart layout constants
 export const CHART_WIDTH = Dimensions.get('window').width - SPACING.lg * 4
-export const CHART_HEIGHT = 160
+export const CHART_HEIGHT = 180
 export const CHART_PADDING = { top: 24, bottom: 28, left: 28, right: 16 }
+
+// Distinct card accent colors for the 3 stats cards
+export const STATS_CARD_COLORS = [
+  { bg: '#F0F6FA', accent: COLORS.primary },      // mist blue family
+  { bg: '#FDF5F0', accent: COLORS.accent },        // amber family
+  { bg: '#F5F0FA', accent: '#9B8EC4' },            // purple family
+] as const
 
 export const styles = StyleSheet.create({
   container: {
@@ -18,7 +25,7 @@ export const styles = StyleSheet.create({
     paddingBottom: SPACING['5xl'],
   },
 
-  // Celebration header
+  // Celebration header — gradient from dawn pink to background
   celebrationContainer: {
     alignItems: 'center',
     paddingVertical: SPACING['4xl'],
@@ -27,12 +34,12 @@ export const styles = StyleSheet.create({
   },
   gradientOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: COLORS.secondary,
-    opacity: 0.15,
+    backgroundColor: '#FDF5F5',
+    opacity: 0.6,
     borderRadius: BORDER_RADIUS['2xl'],
   },
   celebrationEmoji: {
-    fontSize: 64,
+    fontSize: 72,
     marginBottom: SPACING.lg,
   },
   celebrationTitle: {
@@ -46,6 +53,15 @@ export const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     lineHeight: TYPOGRAPHY.lineHeight.md,
   },
+  // Decorative gold line below subtitle
+  goldLine: {
+    width: 48,
+    height: 2.5,
+    backgroundColor: COLORS.accent,
+    borderRadius: BORDER_RADIUS.full,
+    marginTop: SPACING.lg,
+    opacity: 0.8,
+  },
 
   // Stats row
   statsRow: {
@@ -56,14 +72,21 @@ export const styles = StyleSheet.create({
   },
   statsCard: {
     flex: 1,
-    backgroundColor: COLORS.card,
     borderRadius: BORDER_RADIUS.lg,
-    paddingVertical: SPACING.lg,
+    paddingTop: 0,
+    paddingBottom: SPACING.lg,
     alignItems: 'center',
+    overflow: 'hidden',
     ...SHADOWS.md,
   },
+  // Colored top stripe for each stats card
+  statsCardStripe: {
+    height: 3,
+    width: '100%',
+    marginBottom: SPACING.md,
+  },
   statsValue: {
-    fontSize: TYPOGRAPHY.fontSize.xl,
+    fontSize: TYPOGRAPHY.fontSize['2xl'],
     fontWeight: TYPOGRAPHY.fontWeight.bold,
     color: COLORS.primary,
     marginBottom: SPACING.xs,
@@ -73,13 +96,19 @@ export const styles = StyleSheet.create({
     color: COLORS.textSecondary,
   },
 
-  // Chart
+  // Chart — with card background
   chartContainer: {
     backgroundColor: COLORS.card,
     borderRadius: BORDER_RADIUS.lg,
     padding: SPACING.lg,
     marginBottom: SPACING['2xl'],
     ...SHADOWS.md,
+  },
+  chartTitle: {
+    fontSize: TYPOGRAPHY.fontSize.lg,
+    fontWeight: TYPOGRAPHY.fontWeight.semibold,
+    color: COLORS.text,
+    marginBottom: SPACING.md,
   },
   sectionTitle: {
     fontSize: TYPOGRAPHY.fontSize.md,
@@ -134,7 +163,7 @@ export const styles = StyleSheet.create({
     color: COLORS.textSecondary,
   },
 
-  // Encouragement
+  // Encouragement — serif, larger, with quotation marks
   encouragementContainer: {
     backgroundColor: 'rgba(124, 156, 180, 0.08)',
     borderRadius: BORDER_RADIUS.lg,
@@ -142,17 +171,32 @@ export const styles = StyleSheet.create({
     marginBottom: SPACING['3xl'],
   },
   encouragementText: {
-    fontSize: TYPOGRAPHY.fontSize.base,
+    fontSize: TYPOGRAPHY.fontSize.md,
     color: COLORS.text,
-    lineHeight: TYPOGRAPHY.lineHeight.lg,
+    lineHeight: TYPOGRAPHY.fontSize.md * 1.8,
     textAlign: 'center',
     fontFamily: TYPOGRAPHY.fontFamily.serif,
   },
 
-  // Action buttons
+  // Action buttons — swapped: export is ghost, home is primary
   actionContainer: {
     gap: SPACING.md,
   },
+  // Ghost button for export
+  ghostButton: {
+    backgroundColor: 'transparent',
+    borderRadius: BORDER_RADIUS.xl,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    paddingVertical: SPACING.lg,
+    alignItems: 'center',
+  },
+  ghostButtonText: {
+    fontSize: TYPOGRAPHY.fontSize.md,
+    fontWeight: TYPOGRAPHY.fontWeight.medium,
+    color: COLORS.textSecondary,
+  },
+  // Primary filled button for home
   primaryButton: {
     backgroundColor: COLORS.primary,
     borderRadius: BORDER_RADIUS.xl,
@@ -164,17 +208,16 @@ export const styles = StyleSheet.create({
     fontWeight: TYPOGRAPHY.fontWeight.semibold,
     color: '#FFFFFF',
   },
-  secondaryButton: {
-    backgroundColor: 'transparent',
-    borderRadius: BORDER_RADIUS.xl,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    paddingVertical: SPACING.lg,
+
+  // Footer signature
+  footerSignature: {
+    marginTop: SPACING['2xl'],
     alignItems: 'center',
+    paddingBottom: SPACING.lg,
   },
-  secondaryButtonText: {
-    fontSize: TYPOGRAPHY.fontSize.md,
-    fontWeight: TYPOGRAPHY.fontWeight.medium,
-    color: COLORS.textSecondary,
+  footerSignatureText: {
+    fontSize: TYPOGRAPHY.fontSize.xs,
+    color: COLORS.textTertiary,
+    letterSpacing: TYPOGRAPHY.letterSpacing.wide,
   },
 })

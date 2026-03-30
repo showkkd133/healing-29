@@ -1,5 +1,6 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useMemo } from 'react'
 import { View, Text, StyleSheet, ScrollView } from 'react-native'
+import { LinearGradient } from 'expo-linear-gradient'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import {
@@ -13,6 +14,7 @@ import {
   Day28Farewell, Day29Reborn,
 } from '@/components/day'
 import { getDayConfig } from '@/constants/days'
+import { getStageByDay } from '@/constants/stages'
 import { useUserStore } from '@/stores/userStore'
 import { useEmotionStore } from '@/stores/emotionStore'
 import { useJourneyStore } from '@/stores/journeyStore'
@@ -62,47 +64,63 @@ const DAY_COMPONENTS: Record<number, DayComponent> = {
   29: Day29Reborn as unknown as DayComponent,
 }
 
-// -- Header --
+// -- Header with pill-shaped badge and decorative line --
 
-function DayHeader({ dayId, theme }: { dayId: number; theme: string }) {
+function DayHeader({ dayId, theme, stageColor }: { dayId: number; theme: string; stageColor: string }) {
   return (
     <View style={styles.header} accessibilityRole="header">
-      <Text style={styles.dayBadge}>Day {dayId}</Text>
+      <Text style={[styles.dayBadge, { backgroundColor: stageColor, color: COLORS.white }]}>
+        Day {dayId}
+      </Text>
       <Text style={styles.dayTheme}>{theme}</Text>
+      <View style={[styles.themeDecorLine, { backgroundColor: stageColor }]} />
     </View>
   )
 }
 
-// -- Guidance text block --
+// -- Guidance text block with left accent border --
 
-function GuidanceBlock({ text }: { text: string }) {
+function GuidanceBlock({ text, stageColor }: { text: string; stageColor: string }) {
   return (
-    <View style={styles.guidanceContainer} accessibilityRole="text">
+    <View
+      style={[
+        styles.guidanceContainer,
+        { backgroundColor: `${stageColor}0A`, borderLeftColor: stageColor },
+      ]}
+      accessibilityRole="text"
+    >
       <Text style={styles.guidanceText}>{text}</Text>
     </View>
   )
 }
 
-// -- Locked content placeholder --
+// -- Locked content placeholder with unlock hint --
 
-function LockedContent({ dayId }: { dayId: number }) {
+function LockedContent({ dayId, daysUntilUnlock }: { dayId: number; daysUntilUnlock: number }) {
   return (
     <View style={styles.lockedContainer} accessibilityLabel={`第${dayId}天尚未解锁`}>
-      <Text style={styles.lockedIcon}>🔒</Text>
+      <Text style={styles.lockedIconSmall}>🔒</Text>
       <Text style={styles.lockedTitle}>Day {dayId} 即将解锁</Text>
       <Text style={styles.lockedDescription}>
         请先完成之前的任务，这一天的内容会在合适的时候为你开启。
       </Text>
+      {daysUntilUnlock > 0 && (
+        <Text style={styles.unlockHint}>
+          还有 {daysUntilUnlock} 天解锁
+        </Text>
+      )}
     </View>
   )
 }
 
-// -- Already-completed placeholder --
+// -- Already-completed placeholder with elegant checkmark --
 
 function CompletedContent({ dayId }: { dayId: number }) {
   return (
     <View style={styles.lockedContainer} accessibilityLabel={`第${dayId}天已完成`}>
-      <Text style={styles.lockedIcon}>✅</Text>
+      <View style={styles.completedCircle}>
+        <Text style={styles.completedCheck}>✓</Text>
+      </View>
       <Text style={styles.lockedTitle}>Day {dayId} 已完成</Text>
       <Text style={styles.lockedDescription}>
         你已经完成了这一天的任务，继续前行吧。
@@ -153,6 +171,13 @@ export default function DayScreen() {
   const guidanceText = config?.guidanceText ?? ''
   const isLocked = dayId > currentDay
   const isAlreadyCompleted = dayId in dailyLogs
+  const daysUntilUnlock = isLocked ? dayId - currentDay : 0
+
+  // Resolve stage color for visual theming
+  const stageColor = useMemo(() => {
+    const stage = getStageByDay(dayId)
+    return stage?.color ?? COLORS.primary
+  }, [dayId])
 
   const DayComponent = DAY_COMPONENTS[dayId]
 
@@ -195,16 +220,25 @@ export default function DayScreen() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top + 44 }]}>
+      {/* Top decorative gradient using stage color */}
+      <LinearGradient
+        colors={[`${stageColor}18`, 'transparent']}
+        style={styles.topGradient}
+        pointerEvents="none"
+      />
+
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <DayHeader dayId={dayId} theme={theme} />
+        <DayHeader dayId={dayId} theme={theme} stageColor={stageColor} />
 
-        {guidanceText.length > 0 && <GuidanceBlock text={guidanceText} />}
+        {guidanceText.length > 0 && (
+          <GuidanceBlock text={guidanceText} stageColor={stageColor} />
+        )}
 
         {isLocked ? (
-          <LockedContent dayId={dayId} />
+          <LockedContent dayId={dayId} daysUntilUnlock={daysUntilUnlock} />
         ) : isAlreadyCompleted ? (
           <CompletedContent dayId={dayId} />
         ) : (
@@ -222,6 +256,15 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
+  // Top decorative gradient overlay
+  topGradient: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 120,
+    zIndex: 0,
+  },
   scrollContent: {
     paddingHorizontal: SPACING['2xl'],
     paddingBottom: SPACING['4xl'],
@@ -233,12 +276,10 @@ const styles = StyleSheet.create({
   dayBadge: {
     fontSize: TYPOGRAPHY.fontSize.sm,
     fontWeight: TYPOGRAPHY.fontWeight.semibold,
-    color: COLORS.primary,
-    backgroundColor: 'rgba(124, 156, 180, 0.12)',
     alignSelf: 'flex-start',
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.xs,
-    borderRadius: BORDER_RADIUS.lg,
+    paddingHorizontal: SPACING.xl,
+    paddingVertical: SPACING.xs + 2,
+    borderRadius: BORDER_RADIUS.full,
     overflow: 'hidden',
     marginBottom: SPACING.sm,
   },
@@ -247,22 +288,33 @@ const styles = StyleSheet.create({
     fontWeight: TYPOGRAPHY.fontWeight.bold,
     color: COLORS.text,
   },
-  // Guidance
+  themeDecorLine: {
+    width: 24,
+    height: 2,
+    borderRadius: 1,
+    marginTop: SPACING.sm,
+  },
+  // Guidance — quote-block style with left border
   guidanceContainer: {
     marginBottom: SPACING['2xl'],
+    borderLeftWidth: 3,
+    borderRadius: BORDER_RADIUS.sm,
+    paddingLeft: SPACING.lg,
+    paddingVertical: SPACING.md,
+    paddingRight: SPACING.md,
   },
   guidanceText: {
-    fontSize: TYPOGRAPHY.fontSize.base,
+    fontSize: TYPOGRAPHY.fontSize.md,
     color: COLORS.textSecondary,
-    lineHeight: TYPOGRAPHY.lineHeight.base,
+    lineHeight: 29, // 17px * 1.7
   },
-  // Locked
+  // Locked / Completed shared container
   lockedContainer: {
     alignItems: 'center',
     paddingVertical: SPACING['6xl'],
   },
-  lockedIcon: {
-    fontSize: 48,
+  lockedIconSmall: {
+    fontSize: 32,
     marginBottom: SPACING.lg,
   },
   lockedTitle: {
@@ -277,5 +329,26 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: TYPOGRAPHY.lineHeight.base,
     paddingHorizontal: SPACING.xl,
+  },
+  unlockHint: {
+    marginTop: SPACING.lg,
+    fontSize: TYPOGRAPHY.fontSize.sm,
+    color: COLORS.textSecondary,
+    fontWeight: TYPOGRAPHY.fontWeight.medium,
+  },
+  // Completed state — elegant circle with checkmark
+  completedCircle: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#E8F5E9',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: SPACING.lg,
+  },
+  completedCheck: {
+    fontSize: 28,
+    color: COLORS.success,
+    fontWeight: TYPOGRAPHY.fontWeight.bold,
   },
 })

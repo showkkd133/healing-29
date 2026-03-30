@@ -15,7 +15,7 @@ import { useJourneyStore } from '@/stores/journeyStore'
 import { useEmotionStore } from '@/stores/emotionStore'
 import { useBadgeStore } from '@/stores/badgeStore'
 import { exportAllData } from '@/services/dataExport'
-import { COLORS, SPACING, BORDER_RADIUS, TYPOGRAPHY } from '@/constants/theme'
+import { COLORS, SPACING, BORDER_RADIUS, TYPOGRAPHY, SHADOWS } from '@/constants/theme'
 import type { DayNumber, PrivacyLevel } from '@/types'
 
 // Privacy level options mapped to store values
@@ -23,6 +23,14 @@ const PRIVACY_LEVELS = [
   { id: 'local' as PrivacyLevel, label: '标准', description: '数据存储在本地设备' },
   { id: 'offline' as PrivacyLevel, label: '严格', description: '数据加密且不允许导出' },
 ] as const
+
+// Stats card color schemes for the journey statistics section
+const STATS_COLORS = {
+  completed: { bg: `${COLORS.primary}14`, text: COLORS.primary },
+  streak: { bg: `${COLORS.accent}14`, text: COLORS.accent },
+  badges: { bg: `${COLORS.secondary}66`, text: '#C07878' },
+  date: { bg: `${COLORS.border}66`, text: COLORS.textSecondary },
+} as const
 
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets()
@@ -136,7 +144,7 @@ export default function SettingsScreen() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      {/* Header */}
+      {/* Header with centered title and subtle bottom border */}
       <View style={styles.header}>
         <Pressable
           style={styles.backButton}
@@ -149,6 +157,7 @@ export default function SettingsScreen() {
         <Text style={styles.headerTitle}>设置</Text>
         <View style={styles.headerSpacer} />
       </View>
+      <View style={styles.headerBorder} />
 
       <ScrollView
         style={styles.scrollView}
@@ -160,8 +169,11 @@ export default function SettingsScreen() {
       >
         {/* Notification settings */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>通知设置</Text>
-          <View style={styles.card}>
+          <View style={styles.sectionTitleRow}>
+            <View style={styles.sectionIndicator} />
+            <Text style={styles.sectionTitle}>通知设置</Text>
+          </View>
+          <View style={[styles.card, SHADOWS.sm]}>
             <View style={styles.row}>
               <View style={styles.rowTextContainer}>
                 <Text style={styles.rowLabel}>每日提醒</Text>
@@ -206,8 +218,11 @@ export default function SettingsScreen() {
 
         {/* Privacy settings */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>隐私设置</Text>
-          <View style={styles.card}>
+          <View style={styles.sectionTitleRow}>
+            <View style={styles.sectionIndicator} />
+            <Text style={styles.sectionTitle}>隐私设置</Text>
+          </View>
+          <View style={[styles.card, SHADOWS.sm]}>
             {PRIVACY_LEVELS.map((level) => {
               const isSelected = privacyLevel === level.id
               return (
@@ -216,7 +231,10 @@ export default function SettingsScreen() {
                   style={[styles.privacyRow, isSelected && styles.privacyRowSelected]}
                   onPress={() => handlePrivacyChange(level.id)}
                 >
-                  <View style={styles.radioOuter}>
+                  <View style={[
+                    styles.radioOuter,
+                    isSelected && styles.radioOuterSelected,
+                  ]}>
                     {isSelected && <View style={styles.radioInner} />}
                   </View>
                   <View style={styles.privacyTextContainer}>
@@ -233,65 +251,81 @@ export default function SettingsScreen() {
 
         {/* Data management */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>数据管理</Text>
-          <View style={styles.card}>
+          <View style={styles.sectionTitleRow}>
+            <View style={styles.sectionIndicator} />
+            <Text style={styles.sectionTitle}>数据管理</Text>
+          </View>
+          <View style={[styles.card, SHADOWS.sm]}>
             <Pressable style={styles.actionRow} onPress={handleExportData} accessibilityRole="button">
               <Text style={styles.actionText}>导出我的数据</Text>
               <Text style={styles.actionArrow}>→</Text>
             </Pressable>
             <View style={styles.divider} />
             <Pressable style={styles.actionRow} onPress={handleResetJourney}>
-              <Text style={styles.actionText}>重置旅程</Text>
+              <View style={styles.actionWithIcon}>
+                <Text style={styles.resetIcon}>↻</Text>
+                <Text style={styles.actionText}>重置旅程</Text>
+              </View>
               <Text style={styles.actionArrow}>→</Text>
             </Pressable>
-            <View style={styles.divider} />
-            <Pressable style={styles.actionRow} onPress={handleClearAllData}>
-              <Text style={styles.dangerText}>清除所有数据</Text>
-              <Text style={[styles.actionArrow, { color: COLORS.error }]}>→</Text>
-            </Pressable>
           </View>
-        </View>
 
-        {/* Journey statistics */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>旅程统计</Text>
-          <View style={styles.card}>
-            <View style={styles.statsGrid}>
-              <View style={styles.statsItem}>
-                <Text style={styles.statsNumber}>
-                  {completedDays}/{29}
-                </Text>
-                <Text style={styles.statsLabel}>已完成天数</Text>
-              </View>
-              <View style={styles.statsItem}>
-                <Text style={[styles.statsNumber, { color: COLORS.accent }]}>
-                  {streakDays}天
-                </Text>
-                <Text style={styles.statsLabel}>连续打卡</Text>
+          {/* Danger zone: clear all data as a standalone red card */}
+          <Pressable style={[styles.dangerCard, SHADOWS.sm]} onPress={handleClearAllData}>
+            <View style={styles.dangerCardContent}>
+              <Text style={styles.dangerIcon}>⚠</Text>
+              <View style={styles.dangerTextContainer}>
+                <Text style={styles.dangerTitle}>清除所有数据</Text>
+                <Text style={styles.dangerDescription}>永久删除所有数据，不可撤销</Text>
               </View>
             </View>
-            <View style={styles.statsDivider} />
-            <View style={styles.statsGrid}>
-              <View style={styles.statsItem}>
-                <Text style={[styles.statsNumber, { color: COLORS.accent }]}>
-                  {earnedCount}枚
-                </Text>
-                <Text style={styles.statsLabel}>获得徽章</Text>
-              </View>
-              <View style={styles.statsItem}>
-                <Text style={styles.statsNumber}>
-                  {formattedStartDate}
-                </Text>
-                <Text style={styles.statsLabel}>开始日期</Text>
-              </View>
+            <Text style={styles.dangerArrow}>→</Text>
+          </Pressable>
+        </View>
+
+        {/* Journey statistics with individual colored stat cards */}
+        <View style={styles.section}>
+          <View style={styles.sectionTitleRow}>
+            <View style={styles.sectionIndicator} />
+            <Text style={styles.sectionTitle}>旅程统计</Text>
+          </View>
+          <View style={styles.statsGrid}>
+            <View style={[styles.statsCard, { backgroundColor: STATS_COLORS.completed.bg }]}>
+              <Text style={[styles.statsNumber, { color: STATS_COLORS.completed.text }]}>
+                {completedDays}/{29}
+              </Text>
+              <Text style={styles.statsLabel}>已完成天数</Text>
+            </View>
+            <View style={[styles.statsCard, { backgroundColor: STATS_COLORS.streak.bg }]}>
+              <Text style={[styles.statsNumber, { color: STATS_COLORS.streak.text }]}>
+                {streakDays}天
+              </Text>
+              <Text style={styles.statsLabel}>连续打卡</Text>
+            </View>
+          </View>
+          <View style={styles.statsGrid}>
+            <View style={[styles.statsCard, { backgroundColor: STATS_COLORS.badges.bg }]}>
+              <Text style={[styles.statsNumber, { color: STATS_COLORS.badges.text }]}>
+                {earnedCount}枚
+              </Text>
+              <Text style={styles.statsLabel}>获得徽章</Text>
+            </View>
+            <View style={[styles.statsCard, { backgroundColor: STATS_COLORS.date.bg }]}>
+              <Text style={[styles.statsNumber, { color: STATS_COLORS.date.text }]}>
+                {formattedStartDate}
+              </Text>
+              <Text style={styles.statsLabel}>开始日期</Text>
             </View>
           </View>
         </View>
 
         {/* About */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>关于</Text>
-          <View style={styles.card}>
+          <View style={styles.sectionTitleRow}>
+            <View style={styles.sectionIndicator} />
+            <Text style={styles.sectionTitle}>关于</Text>
+          </View>
+          <View style={[styles.card, SHADOWS.sm]}>
             {[
               ['应用名称', '29 天疗愈'],
               ['版本', '1.0.0'],
@@ -317,112 +351,277 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
+  // Header: centered larger title with translucent back button
   header: {
-    flexDirection: 'row', alignItems: 'center',
-    justifyContent: 'space-between', height: 56, paddingHorizontal: SPACING.lg,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    height: 56,
+    paddingHorizontal: SPACING.lg,
+  },
+  headerBorder: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: COLORS.border,
   },
   backButton: {
-    width: 40, height: 40, borderRadius: BORDER_RADIUS.full,
-    alignItems: 'center', justifyContent: 'center',
+    width: 40,
+    height: 40,
+    borderRadius: BORDER_RADIUS.full,
+    backgroundColor: `${COLORS.primary}12`,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  backArrow: { fontSize: TYPOGRAPHY.fontSize.lg, color: COLORS.text },
+  backArrow: {
+    fontSize: TYPOGRAPHY.fontSize.lg,
+    color: COLORS.primary,
+  },
   headerTitle: {
-    fontSize: TYPOGRAPHY.fontSize.md, fontWeight: TYPOGRAPHY.fontWeight.semibold, color: COLORS.text,
+    fontSize: TYPOGRAPHY.fontSize.xl,
+    fontWeight: TYPOGRAPHY.fontWeight.bold,
+    color: COLORS.text,
   },
   headerSpacer: { width: 40 },
+
+  // Scroll layout
   scrollView: { flex: 1 },
-  scrollContent: { paddingHorizontal: SPACING.xl, paddingTop: SPACING.lg },
-  section: { marginBottom: SPACING['3xl'] },
-  sectionTitle: {
-    fontSize: TYPOGRAPHY.fontSize.sm, fontWeight: TYPOGRAPHY.fontWeight.semibold,
-    color: COLORS.textSecondary, textTransform: 'uppercase',
-    letterSpacing: TYPOGRAPHY.letterSpacing.wider,
-    marginBottom: SPACING.sm, paddingHorizontal: SPACING.xs,
+  scrollContent: {
+    paddingHorizontal: SPACING.xl,
+    paddingTop: SPACING.xl,
   },
-  card: { backgroundColor: COLORS.card, borderRadius: BORDER_RADIUS.xl, overflow: 'hidden' },
+
+  // Section: indicator bar + normal-size title
+  section: { marginBottom: SPACING['3xl'] },
+  sectionTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: SPACING.sm,
+    paddingHorizontal: SPACING.xs,
+  },
+  sectionIndicator: {
+    width: 3,
+    height: 16,
+    borderRadius: 2,
+    backgroundColor: COLORS.primary,
+    marginRight: SPACING.sm,
+  },
+  sectionTitle: {
+    fontSize: TYPOGRAPHY.fontSize.base,
+    fontWeight: TYPOGRAPHY.fontWeight.semibold,
+    color: COLORS.textSecondary,
+  },
+
+  // Card with soft shadow
+  card: {
+    backgroundColor: COLORS.card,
+    borderRadius: BORDER_RADIUS.xl,
+    overflow: 'hidden',
+  },
+
+  // Notification row
   row: {
-    flexDirection: 'row', alignItems: 'center',
-    justifyContent: 'space-between', padding: SPACING.lg,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: SPACING.lg,
   },
   rowTextContainer: { flex: 1, marginRight: SPACING.md },
   rowLabel: {
-    fontSize: TYPOGRAPHY.fontSize.base + 1, fontWeight: TYPOGRAPHY.fontWeight.semibold,
-    color: COLORS.text, marginBottom: SPACING['2xs'],
+    fontSize: TYPOGRAPHY.fontSize.base + 1,
+    fontWeight: TYPOGRAPHY.fontWeight.semibold,
+    color: COLORS.text,
+    marginBottom: SPACING['2xs'],
   },
-  rowDescription: { fontSize: TYPOGRAPHY.fontSize.sm, color: COLORS.textSecondary },
+  rowDescription: {
+    fontSize: TYPOGRAPHY.fontSize.sm,
+    color: COLORS.textSecondary,
+  },
+
+  // Time picker
   timeRow: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: SPACING.lg, paddingBottom: SPACING.lg,
-    borderTopWidth: 1, borderTopColor: COLORS.border, paddingTop: SPACING.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: SPACING.lg,
+    paddingBottom: SPACING.lg,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+    paddingTop: SPACING.md,
   },
-  timeLabel: { fontSize: TYPOGRAPHY.fontSize.base, color: COLORS.text },
+  timeLabel: {
+    fontSize: TYPOGRAPHY.fontSize.base,
+    color: COLORS.text,
+  },
   timePicker: { flexDirection: 'row', alignItems: 'center' },
   timeButton: {
-    width: 36, height: 36, borderRadius: BORDER_RADIUS.full,
-    backgroundColor: COLORS.border, alignItems: 'center', justifyContent: 'center',
+    width: 36,
+    height: 36,
+    borderRadius: BORDER_RADIUS.full,
+    backgroundColor: COLORS.border,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   timeButtonText: {
-    fontSize: TYPOGRAPHY.fontSize.lg, fontWeight: TYPOGRAPHY.fontWeight.semibold, color: COLORS.primary,
+    fontSize: TYPOGRAPHY.fontSize.lg,
+    fontWeight: TYPOGRAPHY.fontWeight.semibold,
+    color: COLORS.primary,
   },
   timeValue: {
-    fontSize: TYPOGRAPHY.fontSize.md + 1, fontWeight: TYPOGRAPHY.fontWeight.semibold,
-    color: COLORS.text, marginHorizontal: SPACING.lg, minWidth: 60, textAlign: 'center',
+    fontSize: TYPOGRAPHY.fontSize.md + 1,
+    fontWeight: TYPOGRAPHY.fontWeight.semibold,
+    color: COLORS.text,
+    marginHorizontal: SPACING.lg,
+    minWidth: 60,
+    textAlign: 'center',
   },
+
+  // Privacy radio rows
   privacyRow: {
-    flexDirection: 'row', alignItems: 'flex-start',
-    padding: SPACING.lg, borderBottomWidth: 1, borderBottomColor: COLORS.border,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    padding: SPACING.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
   },
-  privacyRowSelected: { backgroundColor: `${COLORS.primary}0A` },
+  privacyRowSelected: {
+    backgroundColor: `${COLORS.primary}0A`,
+  },
   radioOuter: {
-    width: 20, height: 20, borderRadius: BORDER_RADIUS.full, borderWidth: 2,
-    borderColor: COLORS.textTertiary, marginRight: SPACING.md,
-    marginTop: SPACING['2xs'], alignItems: 'center', justifyContent: 'center',
+    width: 20,
+    height: 20,
+    borderRadius: BORDER_RADIUS.full,
+    borderWidth: 2,
+    borderColor: COLORS.textTertiary,
+    marginRight: SPACING.md,
+    marginTop: SPACING['2xs'],
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  radioInner: { width: 10, height: 10, borderRadius: BORDER_RADIUS.full, backgroundColor: COLORS.primary },
+  radioOuterSelected: {
+    borderColor: COLORS.primary,
+  },
+  radioInner: {
+    width: 10,
+    height: 10,
+    borderRadius: BORDER_RADIUS.full,
+    backgroundColor: COLORS.primary,
+  },
   privacyTextContainer: { flex: 1 },
   privacyLabel: {
-    fontSize: TYPOGRAPHY.fontSize.base + 1, fontWeight: TYPOGRAPHY.fontWeight.semibold,
-    color: COLORS.text, marginBottom: SPACING['2xs'],
+    fontSize: TYPOGRAPHY.fontSize.base + 1,
+    fontWeight: TYPOGRAPHY.fontWeight.semibold,
+    color: COLORS.text,
+    marginBottom: SPACING['2xs'],
   },
-  privacyDescription: { fontSize: TYPOGRAPHY.fontSize.sm, color: COLORS.textSecondary },
+  privacyDescription: {
+    fontSize: TYPOGRAPHY.fontSize.sm,
+    color: COLORS.textSecondary,
+  },
+
+  // Action rows
   actionRow: {
-    flexDirection: 'row', alignItems: 'center',
-    justifyContent: 'space-between', padding: SPACING.lg,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: SPACING.lg,
+  },
+  actionWithIcon: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  resetIcon: {
+    fontSize: TYPOGRAPHY.fontSize.md,
+    color: COLORS.primary,
+    marginRight: SPACING.xs,
   },
   actionText: {
-    fontSize: TYPOGRAPHY.fontSize.base + 1, fontWeight: TYPOGRAPHY.fontWeight.semibold, color: COLORS.primary,
+    fontSize: TYPOGRAPHY.fontSize.base + 1,
+    fontWeight: TYPOGRAPHY.fontWeight.semibold,
+    color: COLORS.primary,
   },
-  actionArrow: { fontSize: TYPOGRAPHY.fontSize.md + 1, color: COLORS.primary },
-  dangerText: {
-    fontSize: TYPOGRAPHY.fontSize.base + 1, fontWeight: TYPOGRAPHY.fontWeight.semibold, color: COLORS.error,
+  actionArrow: {
+    fontSize: TYPOGRAPHY.fontSize.md + 1,
+    color: COLORS.primary,
   },
+
+  // Danger card for "clear all data"
+  dangerCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: `${COLORS.error}0A`,
+    borderRadius: BORDER_RADIUS.xl,
+    borderWidth: 1,
+    borderColor: `${COLORS.error}20`,
+    padding: SPACING.lg,
+    marginTop: SPACING.md,
+  },
+  dangerCardContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  dangerIcon: {
+    fontSize: TYPOGRAPHY.fontSize.lg,
+    marginRight: SPACING.md,
+  },
+  dangerTextContainer: {
+    flex: 1,
+  },
+  dangerTitle: {
+    fontSize: TYPOGRAPHY.fontSize.base + 1,
+    fontWeight: TYPOGRAPHY.fontWeight.semibold,
+    color: COLORS.error,
+    marginBottom: SPACING['2xs'],
+  },
+  dangerDescription: {
+    fontSize: TYPOGRAPHY.fontSize.sm,
+    color: `${COLORS.error}99`,
+  },
+  dangerArrow: {
+    fontSize: TYPOGRAPHY.fontSize.md + 1,
+    color: COLORS.error,
+  },
+
+  // About rows
   aboutRow: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: SPACING.lg,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: SPACING.lg,
   },
-  aboutLabel: { fontSize: TYPOGRAPHY.fontSize.base, color: COLORS.text },
-  aboutValue: { fontSize: TYPOGRAPHY.fontSize.base, color: COLORS.textSecondary },
-  divider: { height: 1, backgroundColor: COLORS.border, marginHorizontal: SPACING.lg },
+  aboutLabel: {
+    fontSize: TYPOGRAPHY.fontSize.base,
+    color: COLORS.text,
+  },
+  aboutValue: {
+    fontSize: TYPOGRAPHY.fontSize.base,
+    color: COLORS.textSecondary,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: COLORS.border,
+    marginHorizontal: SPACING.lg,
+  },
+
+  // Journey statistics — individual colored cards
   statsGrid: {
     flexDirection: 'row',
+    gap: SPACING.md,
+    marginBottom: SPACING.md,
   },
-  statsItem: {
+  statsCard: {
     flex: 1,
     alignItems: 'center',
     paddingVertical: SPACING.lg,
+    borderRadius: BORDER_RADIUS.xl,
   },
   statsNumber: {
     fontSize: TYPOGRAPHY.fontSize.xl,
     fontWeight: TYPOGRAPHY.fontWeight.bold,
-    color: COLORS.primary,
     marginBottom: SPACING.xs,
   },
   statsLabel: {
     fontSize: TYPOGRAPHY.fontSize.sm,
     color: COLORS.textSecondary,
-  },
-  statsDivider: {
-    height: 1,
-    backgroundColor: COLORS.border,
-    marginHorizontal: SPACING.lg,
   },
 })

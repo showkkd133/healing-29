@@ -13,7 +13,9 @@ import { useBadgeStore } from '@/stores/badgeStore'
 import { BADGES, getBadgeById } from '@/constants/badges'
 import { exportAllData } from '@/services/dataExport'
 import { COLORS, SPACING } from '@/constants/theme'
-import { styles, CHART_WIDTH, CHART_HEIGHT, CHART_PADDING } from '@/components/summary/styles'
+import {
+  styles, CHART_WIDTH, CHART_HEIGHT, CHART_PADDING, STATS_CARD_COLORS,
+} from '@/components/summary/styles'
 
 const MAX_VISIBLE_BADGES = 8
 
@@ -33,14 +35,24 @@ function CelebrationHeader() {
       <Text style={styles.celebrationEmoji}>🦋</Text>
       <Text style={styles.celebrationTitle}>你做到了</Text>
       <Text style={styles.celebrationSubtitle}>29 天疗愈之旅，圆满完成</Text>
+      {/* Decorative gold line */}
+      <View style={styles.goldLine} />
     </View>
   )
 }
 
-function StatsCard({ value, label }: { readonly value: string; readonly label: string }) {
+function StatsCard({
+  value, label, index,
+}: {
+  readonly value: string
+  readonly label: string
+  readonly index: number
+}) {
+  const colorScheme = STATS_CARD_COLORS[index] ?? STATS_CARD_COLORS[0]
   return (
-    <View style={styles.statsCard}>
-      <Text style={styles.statsValue}>{value}</Text>
+    <View style={[styles.statsCard, { backgroundColor: colorScheme.bg }]}>
+      <View style={[styles.statsCardStripe, { backgroundColor: colorScheme.accent }]} />
+      <Text style={[styles.statsValue, { color: colorScheme.accent }]}>{value}</Text>
       <Text style={styles.statsLabel}>{label}</Text>
     </View>
   )
@@ -54,14 +66,14 @@ function StatsRow({
   return (
     <View style={styles.statsRow}>
       {/* Stagger each stats card individually */}
-      <Animated.View entering={FadeIn.delay(200).duration(400).withInitialValues({ transform: [{ translateY: 20 }] })}>
-        <StatsCard value={`${completedDays}/29`} label="完成天数" />
+      <Animated.View entering={FadeIn.delay(200).duration(400).withInitialValues({ transform: [{ translateY: 20 }] })} style={{ flex: 1 }}>
+        <StatsCard value={`${completedDays}/29`} label="完成天数" index={0} />
       </Animated.View>
-      <Animated.View entering={FadeIn.delay(300).duration(400).withInitialValues({ transform: [{ translateY: 20 }] })}>
-        <StatsCard value={`${streakDays}`} label="连续打卡" />
+      <Animated.View entering={FadeIn.delay(300).duration(400).withInitialValues({ transform: [{ translateY: 20 }] })} style={{ flex: 1 }}>
+        <StatsCard value={`${streakDays}`} label="连续打卡" index={1} />
       </Animated.View>
-      <Animated.View entering={FadeIn.delay(400).duration(400).withInitialValues({ transform: [{ translateY: 20 }] })}>
-        <StatsCard value={`${badgeCount}`} label="获得徽章" />
+      <Animated.View entering={FadeIn.delay(400).duration(400).withInitialValues({ transform: [{ translateY: 20 }] })} style={{ flex: 1 }}>
+        <StatsCard value={`${badgeCount}`} label="获得徽章" index={2} />
       </Animated.View>
     </View>
   )
@@ -71,7 +83,7 @@ function MoodChart({ data }: { readonly data: ReadonlyArray<{ day: number; score
   if (data.length === 0) {
     return (
       <View style={styles.chartContainer}>
-        <Text style={styles.sectionTitle}>情绪变化曲线</Text>
+        <Text style={styles.chartTitle}>情绪变化曲线</Text>
         <Text style={styles.emptyText}>暂无情绪数据</Text>
       </View>
     )
@@ -92,7 +104,7 @@ function MoodChart({ data }: { readonly data: ReadonlyArray<{ day: number; score
 
   return (
     <View style={styles.chartContainer}>
-      <Text style={styles.sectionTitle}>情绪变化曲线</Text>
+      <Text style={styles.chartTitle}>情绪变化曲线</Text>
       <Svg width={CHART_WIDTH} height={CHART_HEIGHT}>
         <Polyline
           points={polyline}
@@ -102,13 +114,15 @@ function MoodChart({ data }: { readonly data: ReadonlyArray<{ day: number; score
           strokeLinejoin="round"
           strokeLinecap="round"
         />
-        <Circle cx={first.x} cy={first.y} r={4} fill={COLORS.secondary} />
-        <SvgText x={first.x} y={first.y - 10} fontSize={11} fill={COLORS.textSecondary} textAnchor="start">
-          {first.score}
+        {/* Start point with label */}
+        <Circle cx={first.x} cy={first.y} r={5} fill={COLORS.secondary} stroke="#FFFFFF" strokeWidth={1.5} />
+        <SvgText x={first.x + 8} y={first.y - 8} fontSize={11} fill={COLORS.textSecondary} textAnchor="start">
+          起点 {first.score}
         </SvgText>
-        <Circle cx={last.x} cy={last.y} r={4} fill={COLORS.accent} />
-        <SvgText x={last.x} y={last.y - 10} fontSize={11} fill={COLORS.textSecondary} textAnchor="end">
-          {last.score}
+        {/* End point with label */}
+        <Circle cx={last.x} cy={last.y} r={5} fill={COLORS.accent} stroke="#FFFFFF" strokeWidth={1.5} />
+        <SvgText x={last.x - 8} y={last.y - 8} fontSize={11} fill={COLORS.textSecondary} textAnchor="end">
+          终点 {last.score}
         </SvgText>
         <SvgText x={CHART_PADDING.left} y={CHART_HEIGHT - 4} fontSize={10} fill={COLORS.textTertiary} textAnchor="start">
           Day 1
@@ -172,7 +186,7 @@ function EncouragementBlock({ direction }: { readonly direction: string }) {
   const text = ENCOURAGEMENT[direction] ?? ENCOURAGEMENT.improving
   return (
     <View style={styles.encouragementContainer}>
-      <Text style={styles.encouragementText}>{text}</Text>
+      <Text style={styles.encouragementText}>「{text}」</Text>
     </View>
   )
 }
@@ -180,12 +194,22 @@ function EncouragementBlock({ direction }: { readonly direction: string }) {
 function ActionButtons({ onExport, onGoHome }: { readonly onExport: () => void; readonly onGoHome: () => void }) {
   return (
     <View style={styles.actionContainer}>
-      <Pressable style={styles.primaryButton} onPress={onExport}>
-        <Text style={styles.primaryButtonText}>导出旅程报告</Text>
+      {/* Export uses ghost style */}
+      <Pressable style={styles.ghostButton} onPress={onExport}>
+        <Text style={styles.ghostButtonText}>导出旅程报告</Text>
       </Pressable>
-      <Pressable style={styles.secondaryButton} onPress={onGoHome}>
-        <Text style={styles.secondaryButtonText}>返回首页</Text>
+      {/* Home uses primary filled style */}
+      <Pressable style={styles.primaryButton} onPress={onGoHome}>
+        <Text style={styles.primaryButtonText}>返回首页</Text>
       </Pressable>
+    </View>
+  )
+}
+
+function FooterSignature() {
+  return (
+    <View style={styles.footerSignature}>
+      <Text style={styles.footerSignatureText}>29天疗愈 × 你的名字</Text>
     </View>
   )
 }
@@ -244,6 +268,10 @@ export default function SummaryScreen() {
         {/* Action buttons */}
         <Animated.View entering={FadeIn.delay(1100).duration(400)}>
           <ActionButtons onExport={handleExport} onGoHome={handleGoHome} />
+        </Animated.View>
+        {/* Footer signature */}
+        <Animated.View entering={FadeIn.delay(1300).duration(400)}>
+          <FooterSignature />
         </Animated.View>
       </ScrollView>
     </View>

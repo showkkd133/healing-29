@@ -15,12 +15,13 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
 } from 'react-native-reanimated'
+import { LinearGradient } from 'expo-linear-gradient'
 import { useUserStore } from '@/stores/userStore'
 import { useEmotionStore } from '@/stores/emotionStore'
 import { useJourneyStore } from '@/stores/journeyStore'
 import { useBadgeStore } from '@/stores/badgeStore'
 import { JourneyMap } from '@/components/shared/JourneyMap'
-import { COLORS, SPACING, TYPOGRAPHY, BORDER_RADIUS } from '@/constants/theme'
+import { COLORS, SPACING, TYPOGRAPHY, BORDER_RADIUS, SHADOWS } from '@/constants/theme'
 import { getStageByDay } from '@/constants/stages'
 import ProgressRing from '@/components/home/ProgressRing'
 import MoodTrend from '@/components/home/MoodTrend'
@@ -30,6 +31,9 @@ const TOTAL_DAYS = 29
 
 // Default moods shown when no emotion data exists yet
 const DEFAULT_MOODS: number[] = []
+
+// Encouraging tagline beneath the start button
+const ENCOURAGEMENT = '今天，给自己15分钟'
 
 export default function HomeScreen() {
   const router = useRouter()
@@ -81,22 +85,33 @@ export default function HomeScreen() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
+      {/* Top decorative gradient line */}
+      <LinearGradient
+        colors={[COLORS.primary, 'transparent']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={styles.topLine}
+      />
+
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.appTitle}>29 天疗愈</Text>
+          <View>
+            <Text style={styles.headerSubtitle}>healing journey</Text>
+            <Text style={styles.appTitle}>29 天疗愈</Text>
+          </View>
           <View style={styles.headerActions}>
             {/* Badge gallery entry */}
             <Pressable
               onPress={() => router.push('/badges')}
-              style={styles.badgeButton}
+              style={styles.iconButton}
               accessibilityRole="button"
               accessibilityLabel={`查看徽章画廊，已获得${earnedCount}枚`}
             >
-              <Text style={styles.badgeIcon}>🏅</Text>
+              <Text style={styles.iconText}>🏅</Text>
               {earnedCount > 0 && (
                 <View style={styles.badgeCount}>
                   <Text style={styles.badgeCountText}>{earnedCount}</Text>
@@ -105,11 +120,11 @@ export default function HomeScreen() {
             </Pressable>
             <Pressable
               onPress={handleOpenSettings}
-              style={styles.settingsButton}
+              style={styles.iconButton}
               accessibilityRole="button"
               accessibilityLabel="打开设置"
             >
-              <Text style={styles.settingsIcon}>⚙️</Text>
+              <Text style={styles.iconText}>⚙️</Text>
             </Pressable>
           </View>
         </View>
@@ -119,30 +134,42 @@ export default function HomeScreen() {
           <ProgressRing currentDay={currentDay} totalDays={TOTAL_DAYS} />
         </Animated.View>
 
-        {/* Phase info — staggered entrance */}
-        <Animated.View
-          entering={FadeIn.delay(200).duration(400)}
-          style={styles.phaseContainer}
-        >
-          <Text style={styles.phaseLabel}>{stage?.name ?? ''}</Text>
-          <Text style={styles.phaseDescription}>{stage?.description ?? ''}</Text>
-        </Animated.View>
+        {/* Phase info card — staggered entrance */}
+        {stage && (
+          <Animated.View
+            entering={FadeIn.delay(200).duration(400)}
+            style={styles.phaseCard}
+          >
+            <View style={[styles.phaseAccentBar, { backgroundColor: stage.color }]} />
+            <View style={styles.phaseCardContent}>
+              <Text style={styles.phaseLabel}>{stage.name}</Text>
+              <Text style={styles.phaseDescription}>{stage.description}</Text>
+            </View>
+          </Animated.View>
+        )}
 
         {/* Start button — staggered entrance (fade + slide) + press scale */}
         <Animated.View entering={SlideInUp.delay(400).duration(400).springify()}>
           <Animated.View style={animatedButtonStyle}>
             <Link href={`/day/${currentDay}`} asChild>
               <Pressable
-                style={styles.startButton}
                 onPressIn={handlePressIn}
                 onPressOut={handlePressOut}
                 accessibilityRole="button"
                 accessibilityLabel="开始今日任务"
               >
-                <Text style={styles.startButtonText}>开始今日任务</Text>
+                <LinearGradient
+                  colors={[COLORS.primary, '#6A8AA2']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.startButton}
+                >
+                  <Text style={styles.startButtonText}>开始今日任务</Text>
+                </LinearGradient>
               </Pressable>
             </Link>
           </Animated.View>
+          <Text style={styles.encouragement}>{ENCOURAGEMENT}</Text>
         </Animated.View>
 
         {/* Journey map — staggered entrance */}
@@ -173,37 +200,56 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
+  topLine: {
+    height: 1,
+    width: '100%',
+  },
   scrollContent: {
     paddingHorizontal: SPACING['2xl'],
-    paddingBottom: SPACING['4xl'],
+    paddingBottom: SPACING['6xl'],
   },
+  // Header
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: SPACING.lg,
+    paddingVertical: SPACING.xl,
+  },
+  headerSubtitle: {
+    fontSize: TYPOGRAPHY.fontSize.xs,
+    fontWeight: TYPOGRAPHY.fontWeight.medium,
+    color: COLORS.textTertiary,
+    letterSpacing: TYPOGRAPHY.letterSpacing.wider,
+    textTransform: 'uppercase',
+    marginBottom: SPACING['2xs'],
   },
   appTitle: {
-    fontSize: TYPOGRAPHY.fontSize.xl,
+    fontSize: TYPOGRAPHY.fontSize['2xl'],
     fontWeight: TYPOGRAPHY.fontWeight.bold,
     color: COLORS.text,
+    letterSpacing: TYPOGRAPHY.letterSpacing.tight,
   },
   headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: SPACING.xs,
+    gap: SPACING.sm,
   },
-  badgeButton: {
-    padding: SPACING.sm,
+  iconButton: {
+    width: 40,
+    height: 40,
+    borderRadius: BORDER_RADIUS.full,
+    backgroundColor: `${COLORS.primary}10`,
+    alignItems: 'center',
+    justifyContent: 'center',
     position: 'relative',
   },
-  badgeIcon: {
-    fontSize: TYPOGRAPHY.fontSize.lg,
+  iconText: {
+    fontSize: TYPOGRAPHY.fontSize.md,
   },
   badgeCount: {
     position: 'absolute',
-    top: 0,
-    right: 0,
+    top: -2,
+    right: -2,
     backgroundColor: COLORS.warning,
     borderRadius: BORDER_RADIUS.full,
     minWidth: 18,
@@ -218,52 +264,57 @@ const styles = StyleSheet.create({
     fontWeight: TYPOGRAPHY.fontWeight.bold,
     lineHeight: 18,
   },
-  settingsButton: {
-    padding: SPACING.sm,
-  },
-  settingsIcon: {
-    fontSize: TYPOGRAPHY.fontSize.lg,
-  },
-  // Phase info
-  phaseContainer: {
-    alignItems: 'center',
+  // Phase info card
+  phaseCard: {
+    flexDirection: 'row',
+    backgroundColor: COLORS.card,
+    borderRadius: BORDER_RADIUS.lg,
     marginBottom: SPACING['3xl'],
+    overflow: 'hidden',
+    ...SHADOWS.sm,
+  },
+  phaseAccentBar: {
+    width: 4,
+  },
+  phaseCardContent: {
+    flex: 1,
+    paddingVertical: SPACING.lg,
+    paddingHorizontal: SPACING.xl,
   },
   phaseLabel: {
-    fontSize: TYPOGRAPHY.fontSize.sm,
-    color: COLORS.textSecondary,
-    textTransform: 'uppercase',
-    letterSpacing: TYPOGRAPHY.letterSpacing.wider,
-    marginBottom: SPACING.xs,
-  },
-  phaseName: {
-    fontSize: TYPOGRAPHY.fontSize.lg,
+    fontSize: TYPOGRAPHY.fontSize.md,
     fontWeight: TYPOGRAPHY.fontWeight.semibold,
+    fontFamily: TYPOGRAPHY.fontFamily.serif,
     color: COLORS.text,
-    marginBottom: SPACING.sm,
+    marginBottom: SPACING.xs,
   },
   phaseDescription: {
     fontSize: TYPOGRAPHY.fontSize.base,
+    fontFamily: TYPOGRAPHY.fontFamily.serif,
     color: COLORS.textSecondary,
-    textAlign: 'center',
     lineHeight: TYPOGRAPHY.lineHeight.base,
   },
   // Start button
   startButton: {
-    backgroundColor: COLORS.primary,
-    borderRadius: BORDER_RADIUS.xl,
+    borderRadius: BORDER_RADIUS['2xl'],
     paddingVertical: SPACING.xl,
     alignItems: 'center',
-    marginBottom: SPACING['3xl'],
     shadowColor: COLORS.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
-    shadowRadius: 8,
+    shadowRadius: 12,
     elevation: 4,
   },
-startButtonText: {
+  startButtonText: {
     color: COLORS.card,
     fontSize: TYPOGRAPHY.fontSize.md,
     fontWeight: TYPOGRAPHY.fontWeight.semibold,
+  },
+  encouragement: {
+    textAlign: 'center',
+    color: COLORS.textTertiary,
+    fontSize: TYPOGRAPHY.fontSize.sm,
+    marginTop: SPACING.md,
+    marginBottom: SPACING['4xl'],
   },
 })
