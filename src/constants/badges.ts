@@ -2,12 +2,7 @@
 
 import type { Badge } from '@/types'
 
-export interface ZenBadge extends Omit<Badge, 'icon'> {
-  readonly icon: string; // Now refers to icon name
-  readonly iconProvider?: 'Feather' | 'Ionicons' | 'MaterialCommunityIcons';
-}
-
-export const BADGES: readonly ZenBadge[] = [
+export const BADGES: readonly Badge[] = [
   // ─── Milestone Badges (day completion) ────────────────────────────
   {
     id: 'first-step',
@@ -248,9 +243,9 @@ export const BADGES: readonly ZenBadge[] = [
 ] as const
 
 /** Look up a badge by its id */
-export const getBadgeById = (badgeId: string): ZenBadge | undefined =>
+export const getBadgeById = (badgeId: string): Badge | undefined =>
   BADGES.find((badge) => badge.id === badgeId)
 
 /** Get all badges in a given category */
-export const getBadgesByCategory = (category: string): readonly ZenBadge[] =>
+export const getBadgesByCategory = (category: string): readonly Badge[] =>
   BADGES.filter((badge) => badge.category === category)

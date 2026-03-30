@@ -7,12 +7,12 @@ import { TouchableOpacity } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons'
 import { useBadgeStore } from '@/stores/badgeStore'
-import { BADGES, type ZenBadge } from '@/constants/badges'
+import { BADGES } from '@/constants/badges'
 import type { Badge } from '@/types'
 import { IconBack, IconClose } from '@/components/icons'
 import { COLORS, SPACING, BORDER_RADIUS, TYPOGRAPHY } from '@/constants/theme'
 
-function BadgeIcon({ badge, size, color }: { badge: ZenBadge; size: number; color: string }) {
+function BadgeIcon({ badge, size, color }: { badge: Badge; size: number; color: string }) {
   if (badge.iconProvider === 'MaterialCommunityIcons') {
     return <MaterialCommunityIcons name={badge.icon as any} size={size} color={color} />
   }
@@ -43,7 +43,7 @@ function BadgeDetailModal({
             <IconClose size={18} color={COLORS.textSecondary} />
           </TouchableOpacity>
           <View style={styles.modalIconWrap}>
-            <BadgeIcon badge={badge as unknown as ZenBadge} size={48} color={COLORS.primary} />
+            <BadgeIcon badge={badge} size={48} color={COLORS.primary} />
           </View>
           <Text style={styles.modalName}>{badge.name}</Text>
           <Text style={styles.modalDesc}>{badge.description}</Text>

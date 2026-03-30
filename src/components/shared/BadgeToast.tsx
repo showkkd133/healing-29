@@ -12,6 +12,7 @@ import Animated, {
 } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import * as Haptics from 'expo-haptics'
+import { Feather, MaterialCommunityIcons } from '@expo/vector-icons'
 import { IconClose } from '@/components/icons'
 import { useBadgeStore } from '@/stores/badgeStore'
 import { BADGES } from '@/constants/badges'
@@ -98,9 +99,13 @@ function ShardLayer({ visible, badge }: { visible: boolean; badge: Badge | null 
       {SHARD_SEEDS.map((seed, i) => (
         <Shard key={i} seed={seed} index={i} visible={visible} badge={badge} />
       ))}
-      <Animated.Text style={[styles.icon, emojiStyle]}>
-        {badge?.icon}
-      </Animated.Text>
+      <Animated.View style={[styles.iconWrap, emojiStyle]}>
+        {badge && (
+          badge.iconProvider === 'MaterialCommunityIcons'
+            ? <MaterialCommunityIcons name={badge.icon as any} size={28} color={COLORS.primary} />
+            : <Feather name={badge.icon as any} size={28} color={COLORS.primary} />
+        )}
+      </Animated.View>
     </View>
   )
 }
@@ -210,10 +215,9 @@ const styles = StyleSheet.create({
     height: SHARD_SIZE,
     borderRadius: 2,
   },
-  icon: {
-    fontSize: 32,
-    lineHeight: 36,
-    textAlign: 'center',
+  iconWrap: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   content: {
     flex: 1,

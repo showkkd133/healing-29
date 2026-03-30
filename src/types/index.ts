@@ -330,6 +330,7 @@ export interface Badge {
   readonly name: string
   readonly description: string
   readonly icon: string
+  readonly iconProvider?: 'Feather' | 'Ionicons' | 'MaterialCommunityIcons'
   readonly category: BadgeCategory
   readonly unlockedAt: string | null
   readonly requirement: BadgeRequirement
