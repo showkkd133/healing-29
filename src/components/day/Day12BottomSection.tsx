@@ -3,7 +3,7 @@
 import React from 'react'
 import { View, Text, Switch, StyleSheet } from 'react-native'
 import Animated, { FadeIn } from 'react-native-reanimated'
-import { COLORS, SPACING, BORDER_RADIUS } from '@/constants/theme'
+import { COLORS, SPACING, BORDER_RADIUS, SHADOWS } from '@/constants/theme'
 import { ZenButton } from '@/components/ui/ZenButton'
 import { useHaptic } from '@/hooks/useHaptic'
 

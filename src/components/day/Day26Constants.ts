@@ -8,8 +8,7 @@ export const WISH_TYPES = [
 ] as const
 
 export const PLAN_OPTIONS = [
-...
-
+  { id: 'today', label: '今天就做' },
   { id: 'this_week', label: '本周做' },
   { id: 'future', label: '规划未来做' },
 ] as const

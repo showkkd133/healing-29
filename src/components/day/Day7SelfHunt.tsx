@@ -60,7 +60,7 @@ const Day7SelfHunt = React.memo(function Day7SelfHunt({
   // ─── Show poster ────────────────────────────────────────────────
 
   const handleShowPoster = useCallback(() => {
-    haptic.notification('success');
+    haptic.success();
     setShowPoster(true);
   }, [haptic])
 
