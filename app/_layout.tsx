@@ -53,7 +53,8 @@ export default function RootLayout() {
           headerTintColor: COLORS.text,
           headerTitleStyle: { fontWeight: '600' },
           contentStyle: { backgroundColor: COLORS.background },
-          animation: 'slide_from_right',
+          animation: 'fade_from_bottom',
+          animationDuration: 250,
         }}
       >
         <Stack.Screen

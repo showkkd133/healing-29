@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import {
   View,
   Text,
@@ -14,6 +14,7 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
+  withTiming,
 } from 'react-native-reanimated'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useUserStore } from '@/stores/userStore'
@@ -21,7 +22,7 @@ import { useEmotionStore } from '@/stores/emotionStore'
 import { useJourneyStore } from '@/stores/journeyStore'
 import { useBadgeStore } from '@/stores/badgeStore'
 import { JourneyMap } from '@/components/shared/JourneyMap'
-import { COLORS, SPACING, TYPOGRAPHY, BORDER_RADIUS, SHADOWS } from '@/constants/theme'
+import { COLORS, SPACING, TYPOGRAPHY, BORDER_RADIUS } from '@/constants/theme'
 import { getStageByDay } from '@/constants/stages'
 import ProgressRing from '@/components/home/ProgressRing'
 import MoodTrend from '@/components/home/MoodTrend'
@@ -35,6 +36,9 @@ const DEFAULT_MOODS: number[] = []
 
 // Encouraging tagline beneath the start button
 const ENCOURAGEMENT = '今天，给自己15分钟'
+
+// Max height for the expanded journey map content
+const JOURNEY_EXPANDED_HEIGHT = 800
 
 export default function HomeScreen() {
   const router = useRouter()
@@ -54,12 +58,26 @@ export default function HomeScreen() {
 
   const stage = getStageByDay(currentDay)
 
-  useEffect(() => {
-    // Hydration is handled by persist middleware;
-    // initUser only runs when userId is still null after hydration.
-    if (userId === null) return
-  }, [userId])
+  // Journey map collapsible state
+  const [journeyExpanded, setJourneyExpanded] = useState(false)
+  const journeyHeight = useSharedValue(0)
 
+  const animatedJourneyStyle = useAnimatedStyle(() => ({
+    height: journeyHeight.value === 0 ? 0 : journeyHeight.value,
+    overflow: 'hidden' as const,
+    opacity: journeyHeight.value === 0 ? 0 : 1,
+  }))
+
+  const toggleJourney = useCallback(() => {
+    setJourneyExpanded((prev) => {
+      const next = !prev
+      journeyHeight.value = withTiming(
+        next ? JOURNEY_EXPANDED_HEIGHT : 0,
+        { duration: 300 },
+      )
+      return next
+    })
+  }, [journeyHeight])
 
   const handleDismissWelcome = () => {
     initUser()
@@ -86,26 +104,14 @@ export default function HomeScreen() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      {/* Top decorative gradient line */}
-      <LinearGradient
-        colors={[COLORS.primary, 'transparent']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
-        style={styles.topLine}
-      />
-
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
+        {/* Header — minimal title + icon actions */}
         <View style={styles.header}>
-          <View>
-            <Text style={styles.headerSubtitle}>healing journey</Text>
-            <Text style={styles.appTitle}>29 天疗愈</Text>
-          </View>
+          <Text style={styles.appTitle}>29天疗愈</Text>
           <View style={styles.headerActions}>
-            {/* Badge gallery entry */}
             <Pressable
               onPress={() => router.push('/badges')}
               style={({ pressed }) => [
@@ -136,26 +142,27 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* Progress ring — staggered entrance */}
-        <Animated.View entering={FadeIn.duration(500)}>
+        {/* Progress ring — visual focal point, occupies ~40% of viewport */}
+        <Animated.View
+          entering={FadeIn.duration(500)}
+          style={styles.progressRingWrapper}
+        >
           <ProgressRing currentDay={currentDay} totalDays={TOTAL_DAYS} />
         </Animated.View>
 
-        {/* Phase info card — staggered entrance */}
+        {/* Stage info — centered text with color dot */}
         {stage && (
           <Animated.View
             entering={FadeIn.delay(200).duration(400)}
-            style={styles.phaseCard}
+            style={styles.stageInfo}
           >
-            <View style={[styles.phaseAccentBar, { backgroundColor: stage.color }]} />
-            <View style={styles.phaseCardContent}>
-              <Text style={styles.phaseLabel}>{stage.name}</Text>
-              <Text style={styles.phaseDescription}>{stage.description}</Text>
-            </View>
+            <View style={[styles.stageDot, { backgroundColor: stage.color }]} />
+            <Text style={styles.stageName}>{stage.name}</Text>
+            <Text style={styles.stageDescription}>{stage.description}</Text>
           </Animated.View>
         )}
 
-        {/* Start button — staggered entrance (fade + slide) + press scale */}
+        {/* CTA button — full width gradient */}
         <Animated.View entering={SlideInUp.delay(400).duration(400).springify()}>
           <Animated.View style={animatedButtonStyle}>
             <Link href={`/day/${currentDay}`} asChild>
@@ -179,24 +186,43 @@ export default function HomeScreen() {
           <Text style={styles.encouragement}>{ENCOURAGEMENT}</Text>
         </Animated.View>
 
-        {/* Journey map — staggered entrance */}
-        <Animated.View entering={FadeIn.delay(600).duration(400)}>
-          <JourneyMap
-            currentDay={currentDay}
-            completedDays={completedDays}
-            onDayPress={(day) => router.push(`/day/${day}`)}
-          />
+        {/* Journey map — collapsible section */}
+        <Animated.View
+          entering={FadeIn.delay(600).duration(400)}
+          style={styles.journeySection}
+        >
+          <Pressable
+            onPress={toggleJourney}
+            style={styles.journeyToggle}
+            accessibilityRole="button"
+            accessibilityLabel={journeyExpanded ? '收起旅程地图' : '展开旅程地图'}
+          >
+            <Text style={styles.journeyToggleTitle}>旅程地图</Text>
+            <Text style={styles.journeyToggleProgress}>
+              {completedDays.length}/{TOTAL_DAYS}
+            </Text>
+          </Pressable>
+          <Animated.View style={animatedJourneyStyle}>
+            <JourneyMap
+              currentDay={currentDay}
+              completedDays={completedDays}
+              onDayPress={(day) => router.push(`/day/${day}`)}
+            />
+          </Animated.View>
         </Animated.View>
 
-        {/* Mood trend — staggered entrance */}
+        {/* Mood trend */}
         {moods.length > 0 && (
-          <Animated.View entering={FadeIn.delay(800).duration(400)}>
+          <Animated.View
+            entering={FadeIn.delay(800).duration(400)}
+            style={styles.moodTrendWrapper}
+          >
             <MoodTrend moods={moods} />
           </Animated.View>
         )}
       </ScrollView>
 
-      {/* Welcome overlay */}
+      {/* Welcome overlay for first-time users */}
       {isFirstTime && <WelcomeOverlay onStart={handleDismissWelcome} />}
     </View>
   )
@@ -207,10 +233,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
-  topLine: {
-    height: 1,
-    width: '100%',
-  },
   scrollContent: {
     paddingHorizontal: SPACING['2xl'],
     paddingBottom: SPACING['6xl'],
@@ -220,26 +242,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: SPACING.xl,
-  },
-  headerSubtitle: {
-    fontSize: TYPOGRAPHY.fontSize.xs,
-    fontWeight: TYPOGRAPHY.fontWeight.medium,
-    color: COLORS.textTertiary,
-    letterSpacing: TYPOGRAPHY.letterSpacing.wider,
-    textTransform: 'uppercase',
-    marginBottom: SPACING['2xs'],
+    paddingVertical: SPACING.lg,
   },
   appTitle: {
-    fontSize: TYPOGRAPHY.fontSize['2xl'],
-    fontWeight: TYPOGRAPHY.fontWeight.bold,
+    fontSize: TYPOGRAPHY.fontSize.xl,
+    fontWeight: TYPOGRAPHY.fontWeight.semibold,
     color: COLORS.text,
     letterSpacing: TYPOGRAPHY.letterSpacing.tight,
   },
   headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: SPACING.sm,
+    gap: SPACING.md,
   },
   iconButton: {
     width: 44,
@@ -271,37 +285,36 @@ const styles = StyleSheet.create({
     fontWeight: TYPOGRAPHY.fontWeight.bold,
     lineHeight: 18,
   },
-  // Phase info card
-  phaseCard: {
-    flexDirection: 'row',
-    backgroundColor: COLORS.card,
-    borderRadius: BORDER_RADIUS.lg,
+  // Progress ring — generous vertical breathing room
+  progressRingWrapper: {
+    marginVertical: SPACING['4xl'],
+  },
+  // Stage info — centered, minimal
+  stageInfo: {
+    alignItems: 'center',
     marginBottom: SPACING['3xl'],
-    overflow: 'hidden',
-    ...SHADOWS.sm,
   },
-  phaseAccentBar: {
-    width: 4,
+  stageDot: {
+    width: 8,
+    height: 8,
+    borderRadius: BORDER_RADIUS.full,
+    marginBottom: SPACING.sm,
   },
-  phaseCardContent: {
-    flex: 1,
-    paddingVertical: SPACING.lg,
-    paddingHorizontal: SPACING.xl,
-  },
-  phaseLabel: {
-    fontSize: TYPOGRAPHY.fontSize.md,
+  stageName: {
+    fontSize: TYPOGRAPHY.fontSize.lg,
     fontWeight: TYPOGRAPHY.fontWeight.semibold,
     fontFamily: TYPOGRAPHY.fontFamily.serif,
     color: COLORS.text,
     marginBottom: SPACING.xs,
   },
-  phaseDescription: {
+  stageDescription: {
     fontSize: TYPOGRAPHY.fontSize.base,
     fontFamily: TYPOGRAPHY.fontFamily.serif,
     color: COLORS.textSecondary,
     lineHeight: TYPOGRAPHY.lineHeight.base,
+    textAlign: 'center',
   },
-  // Start button
+  // CTA button — full width
   startButton: {
     height: 56,
     borderRadius: 28,
@@ -315,7 +328,7 @@ const styles = StyleSheet.create({
   },
   startButtonText: {
     color: COLORS.card,
-    fontSize: 17,
+    fontSize: TYPOGRAPHY.fontSize.md,
     fontWeight: TYPOGRAPHY.fontWeight.semibold,
     letterSpacing: 0.5,
   },
@@ -324,6 +337,31 @@ const styles = StyleSheet.create({
     color: COLORS.textTertiary,
     fontSize: TYPOGRAPHY.fontSize.sm,
     marginTop: SPACING.md,
+    marginBottom: SPACING['5xl'],
+  },
+  // Journey map — collapsible section
+  journeySection: {
+    marginBottom: SPACING['3xl'],
+  },
+  journeyToggle: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: SPACING.lg,
+  },
+  journeyToggleTitle: {
+    fontSize: TYPOGRAPHY.fontSize.md,
+    fontWeight: TYPOGRAPHY.fontWeight.semibold,
+    color: COLORS.text,
+  },
+  journeyToggleProgress: {
+    fontSize: TYPOGRAPHY.fontSize.sm,
+    fontWeight: TYPOGRAPHY.fontWeight.medium,
+    color: COLORS.textSecondary,
+  },
+  // Mood trend
+  moodTrendWrapper: {
+    marginTop: SPACING['4xl'],
     marginBottom: SPACING['4xl'],
   },
 })

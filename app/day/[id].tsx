@@ -1,6 +1,5 @@
-import React, { useEffect, useMemo } from 'react'
+import React, { useEffect } from 'react'
 import { View, Text, StyleSheet, ScrollView } from 'react-native'
-import { LinearGradient } from 'expo-linear-gradient'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import {
@@ -14,12 +13,11 @@ import {
   Day28Farewell, Day29Reborn,
 } from '@/components/day'
 import { getDayConfig } from '@/constants/days'
-import { getStageByDay } from '@/constants/stages'
 import { useUserStore } from '@/stores/userStore'
 import { useEmotionStore } from '@/stores/emotionStore'
 import { useJourneyStore } from '@/stores/journeyStore'
 import { useBadgeStore } from '@/stores/badgeStore'
-import { COLORS, SPACING, TYPOGRAPHY, BORDER_RADIUS, SHADOWS } from '@/constants/theme'
+import { COLORS, SPACING, TYPOGRAPHY, BORDER_RADIUS } from '@/constants/theme'
 import { IconLock, IconCheck } from '@/components/icons'
 import type { DayNumber, DayCompletionPayload, EmotionIntensity, GenericDayTaskData } from '@/types'
 
@@ -65,31 +63,22 @@ const DAY_COMPONENTS: Record<number, DayComponent> = {
   29: Day29Reborn as unknown as DayComponent,
 }
 
-// -- Header with pill-shaped badge and decorative line --
+// -- Minimal day header: label + theme title --
 
-function DayHeader({ dayId, theme, stageColor }: { dayId: number; theme: string; stageColor: string }) {
+function DayHeader({ dayId, theme }: { dayId: number; theme: string }) {
   return (
     <View style={styles.header} accessibilityRole="header">
-      <Text style={[styles.dayBadge, { backgroundColor: stageColor, color: COLORS.white }, SHADOWS.soft]}>
-        Day {dayId}
-      </Text>
+      <Text style={styles.dayBadge}>Day {dayId}</Text>
       <Text style={styles.dayTheme}>{theme}</Text>
-      <View style={[styles.themeDecorLine, { backgroundColor: stageColor }]} />
     </View>
   )
 }
 
-// -- Guidance text block with left accent border --
+// -- Plain guidance text --
 
-function GuidanceBlock({ text, stageColor }: { text: string; stageColor: string }) {
+function GuidanceBlock({ text }: { text: string }) {
   return (
-    <View
-      style={[
-        styles.guidanceContainer,
-        { backgroundColor: `${stageColor}0A`, borderLeftColor: stageColor },
-      ]}
-      accessibilityRole="text"
-    >
+    <View style={styles.guidanceContainer} accessibilityRole="text">
       <Text style={styles.guidanceText}>{text}</Text>
     </View>
   )
@@ -175,13 +164,6 @@ export default function DayScreen() {
   const isLocked = dayId > currentDay
   const isAlreadyCompleted = dayId in dailyLogs
   const daysUntilUnlock = isLocked ? dayId - currentDay : 0
-
-  // Resolve stage color for visual theming
-  const stageColor = useMemo(() => {
-    const stage = getStageByDay(dayId)
-    return stage?.color ?? COLORS.primary
-  }, [dayId])
-
   const DayComponent = DAY_COMPONENTS[dayId]
 
   // Mark day as started when page loads
@@ -223,21 +205,14 @@ export default function DayScreen() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top + 44 }]}>
-      {/* Top decorative gradient using stage color */}
-      <LinearGradient
-        colors={[`${stageColor}18`, 'transparent']}
-        style={styles.topGradient}
-        pointerEvents="none"
-      />
-
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <DayHeader dayId={dayId} theme={theme} stageColor={stageColor} />
+        <DayHeader dayId={dayId} theme={theme} />
 
         {guidanceText.length > 0 && (
-          <GuidanceBlock text={guidanceText} stageColor={stageColor} />
+          <GuidanceBlock text={guidanceText} />
         )}
 
         {isLocked ? (

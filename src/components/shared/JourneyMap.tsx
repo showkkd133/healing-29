@@ -1,4 +1,4 @@
-// 29-day journey grid navigation grouped by healing stages
+// Minimal 29-day journey grid, calendar-style layout
 
 import { useEffect } from 'react'
 import { View, Text, Pressable, StyleSheet } from 'react-native'
@@ -10,8 +10,7 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated'
 import { IconCheck } from '@/components/icons'
-import { STAGES } from '@/constants/stages'
-import { COLORS, SPACING, BORDER_RADIUS, TYPOGRAPHY, SHADOWS } from '@/constants/theme'
+import { COLORS, SPACING, TYPOGRAPHY } from '@/constants/theme'
 
 interface JourneyMapProps {
   readonly currentDay: number
@@ -21,8 +20,9 @@ interface JourneyMapProps {
 
 type DayStatus = 'completed' | 'current' | 'locked'
 
-const CELL_SIZE = 44
-const CELL_GAP = SPACING.sm
+const CELL_SIZE = 38
+const CELL_GAP = 8
+const DAYS = Array.from({ length: 29 }, (_, i) => i + 1)
 
 const getDayStatus = (
   day: number,
@@ -34,13 +34,13 @@ const getDayStatus = (
   return 'locked'
 }
 
-// Animated wrapper for the current-day cell with pulse effect
+// Subtle pulse animation for the current day
 function PulsingCell({ children }: { readonly children: React.ReactNode }) {
   const scale = useSharedValue(1)
 
   useEffect(() => {
     scale.value = withRepeat(
-      withTiming(1.05, { duration: 1200, easing: Easing.inOut(Easing.ease) }),
+      withTiming(1.03, { duration: 1400, easing: Easing.inOut(Easing.ease) }),
       -1,
       true,
     )
@@ -50,251 +50,115 @@ function PulsingCell({ children }: { readonly children: React.ReactNode }) {
     transform: [{ scale: scale.value }],
   }))
 
-  return (
-    <Animated.View style={animatedStyle}>
-      {children}
-    </Animated.View>
-  )
+  return <Animated.View style={animatedStyle}>{children}</Animated.View>
 }
 
-// Single day cell within the grid
-function DayCell({
-  day,
-  status,
-  onPress,
-}: {
-  readonly day: number
-  readonly status: DayStatus
-  readonly onPress: (day: number) => void
-}) {
-  const isInteractive = status !== 'locked'
-
-  const cellStyle = [
-    styles.cell,
-    status === 'completed' && styles.cellCompleted,
-    status === 'current' && styles.cellCurrent,
-    status === 'locked' && styles.cellLocked,
-  ]
-
-  const textStyle = [
-    styles.cellText,
-    status === 'completed' && styles.cellTextCompleted,
-    status === 'current' && styles.cellTextCurrent,
-    status === 'locked' && styles.cellTextLocked,
-  ]
-
-  // Accessibility label varies by status
-  const a11yLabel =
-    status === 'completed' ? `第${day}天，已完成` :
-    status === 'current' ? `第${day}天，当前任务` :
-    `第${day}天，未解锁`
-
-  const cellContent = (
-    <Pressable
-      disabled={!isInteractive}
-      onPress={() => onPress(day)}
-      style={({ pressed }) => [
-        ...cellStyle,
-        pressed && isInteractive && styles.cellPressed,
-      ]}
-      accessibilityRole="button"
-      accessibilityLabel={a11yLabel}
-      accessibilityState={{ disabled: !isInteractive }}
-    >
-      {status === 'completed' ? (
-        <IconCheck size={16} color={COLORS.white} />
-      ) : (
-        <Text style={textStyle}>{day}</Text>
-      )}
-    </Pressable>
-  )
-
-  // Wrap current day in pulse animation
-  if (status === 'current') {
-    return <PulsingCell>{cellContent}</PulsingCell>
-  }
-
-  return cellContent
-}
-
-// A single stage block with title and day grid
-function StageSection({
-  name,
-  color,
-  days,
-  currentDay,
-  completedDays,
-  onDayPress,
-}: {
-  readonly name: string
-  readonly color: string
-  readonly days: readonly number[]
-  readonly currentDay: number
-  readonly completedDays: ReadonlyArray<number>
-  readonly onDayPress: (day: number) => void
-}) {
+export function JourneyMap({ currentDay, completedDays, onDayPress }: JourneyMapProps) {
   return (
-    <View style={styles.stageSection}>
-      <View style={styles.stageTitleRow}>
-        <View style={[styles.stageDot, { backgroundColor: color }]} />
-        <Text style={styles.stageTitle}>{name}</Text>
+    <View>
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.title}>旅程地图</Text>
+        <Text style={styles.counter}>{completedDays.length}/29</Text>
       </View>
-      <View style={styles.dayGrid}>
-        {days.map((day) => (
-          <DayCell
-            key={day}
-            day={day}
-            status={getDayStatus(day, currentDay, completedDays)}
-            onPress={onDayPress}
-          />
-        ))}
-      </View>
-    </View>
-  )
-}
 
-export function JourneyMap({
-  currentDay,
-  completedDays,
-  onDayPress,
-}: JourneyMapProps) {
-  return (
-    <View style={styles.outerContainer}>
-      {/* Decorative gradient bar at top */}
-      <View style={styles.gradientBar}>
-        <View style={styles.gradientLeft} />
-        <View style={styles.gradientRight} />
-      </View>
-      <View style={styles.container}>
-        {/* Header: left-aligned title + progress counter */}
-        <View style={styles.header}>
-          <Text style={styles.title}>旅程地图</Text>
-          <Text style={styles.progressText}>
-            {completedDays.length}/29 天
-          </Text>
-        </View>
-        {STAGES.map((stage) => (
-          <StageSection
-            key={stage.id}
-            name={stage.name}
-            color={stage.color}
-            days={stage.days}
-            currentDay={currentDay}
-            completedDays={completedDays}
-            onDayPress={onDayPress}
-          />
-        ))}
+      {/* 7-column grid */}
+      <View style={styles.grid}>
+        {DAYS.map((day) => {
+          const status = getDayStatus(day, currentDay, completedDays)
+          const isInteractive = status !== 'locked'
+
+          const cell = (
+            <Pressable
+              key={day}
+              disabled={!isInteractive}
+              onPress={() => onDayPress(day)}
+              style={({ pressed }) => [
+                styles.cell,
+                status === 'completed' && styles.cellCompleted,
+                status === 'current' && styles.cellCurrent,
+                status === 'locked' && styles.cellLocked,
+                pressed && isInteractive && styles.cellPressed,
+              ]}
+              accessibilityRole="button"
+              accessibilityLabel={
+                status === 'completed' ? `第${day}天，已完成` :
+                status === 'current' ? `第${day}天，当前任务` :
+                `第${day}天，未解锁`
+              }
+              accessibilityState={{ disabled: !isInteractive }}
+            >
+              {status === 'completed' ? (
+                <IconCheck size={14} color={COLORS.white} />
+              ) : (
+                <Text style={[
+                  styles.cellText,
+                  status === 'current' && styles.cellTextLight,
+                  status === 'locked' && styles.cellTextLocked,
+                ]}>{day}</Text>
+              )}
+            </Pressable>
+          )
+
+          if (status === 'current') {
+            return <PulsingCell key={day}>{cell}</PulsingCell>
+          }
+          return cell
+        })}
       </View>
     </View>
   )
 }
 
 const styles = StyleSheet.create({
-  outerContainer: {
-    marginBottom: SPACING['3xl'],
-    borderRadius: BORDER_RADIUS['2xl'],
-    overflow: 'hidden',
-    ...SHADOWS.sm,
-  },
-  gradientBar: {
-    height: 2,
-    flexDirection: 'row',
-  },
-  gradientLeft: {
-    flex: 1,
-    backgroundColor: COLORS.primary,
-  },
-  gradientRight: {
-    flex: 1,
-    backgroundColor: COLORS.secondary,
-  },
-  container: {
-    backgroundColor: COLORS.card,
-    padding: SPACING.lg,
-  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: SPACING.lg,
+    marginBottom: SPACING.md,
   },
   title: {
     fontSize: TYPOGRAPHY.fontSize.md,
     fontWeight: TYPOGRAPHY.fontWeight.semibold,
     color: COLORS.text,
   },
-  progressText: {
+  counter: {
     fontSize: TYPOGRAPHY.fontSize.sm,
-    fontWeight: TYPOGRAPHY.fontWeight.medium,
     color: COLORS.textSecondary,
   },
-  stageSection: {
-    marginBottom: SPACING.lg,
-  },
-  stageTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: SPACING.sm + SPACING.xs,
-  },
-  stageDot: {
-    width: 8,
-    height: 8,
-    borderRadius: BORDER_RADIUS.full,
-    marginRight: SPACING.sm,
-  },
-  stageTitle: {
-    fontSize: TYPOGRAPHY.fontSize.xs,
-    fontWeight: TYPOGRAPHY.fontWeight.semibold,
-    color: COLORS.text,
-  },
-  dayGrid: {
+  grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: CELL_GAP,
   },
-  // Day cell base
   cell: {
     width: CELL_SIZE,
     height: CELL_SIZE,
-    borderRadius: BORDER_RADIUS.full,
+    borderRadius: CELL_SIZE / 2,
     alignItems: 'center',
     justifyContent: 'center',
   },
   cellCompleted: {
     backgroundColor: COLORS.primary,
-    // Subtle inner shadow via border trick
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.08)',
   },
   cellCurrent: {
     backgroundColor: COLORS.accent,
-    shadowColor: COLORS.accent,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.6,
-    shadowRadius: 12,
-    elevation: 6,
   },
   cellLocked: {
-    borderWidth: 1.5,
-    borderColor: COLORS.borderLight,
-    opacity: 0.4,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   cellPressed: {
     opacity: 0.75,
-    transform: [{ scale: 0.92 }],
   },
-  // Day cell text
   cellText: {
     fontSize: TYPOGRAPHY.fontSize.sm,
     fontWeight: TYPOGRAPHY.fontWeight.semibold,
   },
-  cellTextCompleted: {
-    color: COLORS.white,
-  },
-  cellTextCurrent: {
+  cellTextLight: {
     color: COLORS.white,
   },
   cellTextLocked: {
-    color: COLORS.textSecondary,
+    color: COLORS.textTertiary,
   },
 })

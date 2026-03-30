@@ -1,8 +1,8 @@
 import React, { useMemo } from 'react'
 import {
-  View, Text, ScrollView, Pressable, FlatList, Dimensions, Alert,
+  View, Text, ScrollView, Pressable, FlatList, Alert,
 } from 'react-native'
-import Animated, { FadeIn, SlideInUp } from 'react-native-reanimated'
+import Animated, { FadeIn } from 'react-native-reanimated'
 import { useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Svg, { Polyline, Circle, Text as SvgText } from 'react-native-svg'
@@ -13,14 +13,17 @@ import { useBadgeStore } from '@/stores/badgeStore'
 import { BADGES, getBadgeById } from '@/constants/badges'
 import { exportAllData } from '@/services/dataExport'
 import { IconButterfly, IconExport } from '@/components/icons'
-import { COLORS, SPACING } from '@/constants/theme'
+import { COLORS } from '@/constants/theme'
 import {
-  styles, CHART_WIDTH, CHART_HEIGHT, CHART_PADDING, STATS_CARD_COLORS,
+  styles, CHART_WIDTH, CHART_HEIGHT, CHART_PADDING,
 } from '@/components/summary/styles'
 
 const MAX_VISIBLE_BADGES = 8
 
-// -- Encouragement copy keyed by trend direction --
+// Stagger delay between animated sections (ms)
+const STAGGER_DELAY = 100
+
+// Encouragement copy keyed by trend direction
 const ENCOURAGEMENT: Record<string, string> = {
   improving: '从第 1 天的风暴，到今天的彩虹。你比想象中更坚强。',
   stable: '你一步一步走过了 29 天，保持了内心的平稳。这本身就是一种力量。',
@@ -32,30 +35,25 @@ const ENCOURAGEMENT: Record<string, string> = {
 function CelebrationHeader() {
   return (
     <View style={styles.celebrationContainer}>
-      <View style={styles.gradientOverlay} />
       <View style={styles.celebrationIcon}>
-        <IconButterfly size={64} color={COLORS.accent} />
+        <IconButterfly size={48} color={COLORS.accent} />
       </View>
       <Text style={styles.celebrationTitle}>你做到了</Text>
       <Text style={styles.celebrationSubtitle}>29 天疗愈之旅，圆满完成</Text>
-      {/* Decorative gold line */}
-      <View style={styles.goldLine} />
     </View>
   )
 }
 
-function StatsCard({
-  value, label, index,
+// Single stat item — number + label
+function StatsItem({
+  value, label,
 }: {
   readonly value: string
   readonly label: string
-  readonly index: number
 }) {
-  const colorScheme = STATS_CARD_COLORS[index] ?? STATS_CARD_COLORS[0]
   return (
-    <View style={[styles.statsCard, { backgroundColor: colorScheme.bg }]}>
-      <View style={[styles.statsCardStripe, { backgroundColor: colorScheme.accent }]} />
-      <Text style={[styles.statsValue, { color: colorScheme.accent }]}>{value}</Text>
+    <View style={styles.statsItem}>
+      <Text style={styles.statsValue}>{value}</Text>
       <Text style={styles.statsLabel}>{label}</Text>
     </View>
   )
@@ -64,20 +62,17 @@ function StatsCard({
 function StatsRow({
   completedDays, streakDays, badgeCount,
 }: {
-  readonly completedDays: number; readonly streakDays: number; readonly badgeCount: number
+  readonly completedDays: number
+  readonly streakDays: number
+  readonly badgeCount: number
 }) {
   return (
     <View style={styles.statsRow}>
-      {/* Stagger each stats card individually */}
-      <Animated.View entering={FadeIn.delay(200).duration(400).withInitialValues({ transform: [{ translateY: 20 }] })} style={{ flex: 1 }}>
-        <StatsCard value={`${completedDays}/29`} label="完成天数" index={0} />
-      </Animated.View>
-      <Animated.View entering={FadeIn.delay(300).duration(400).withInitialValues({ transform: [{ translateY: 20 }] })} style={{ flex: 1 }}>
-        <StatsCard value={`${streakDays}`} label="连续打卡" index={1} />
-      </Animated.View>
-      <Animated.View entering={FadeIn.delay(400).duration(400).withInitialValues({ transform: [{ translateY: 20 }] })} style={{ flex: 1 }}>
-        <StatsCard value={`${badgeCount}`} label="获得徽章" index={2} />
-      </Animated.View>
+      <StatsItem value={`${completedDays}`} label="天" />
+      <View style={styles.statsDivider} />
+      <StatsItem value={`${streakDays}`} label="天连续" />
+      <View style={styles.statsDivider} />
+      <StatsItem value={`${badgeCount}`} label="枚徽章" />
     </View>
   )
 }
@@ -117,12 +112,12 @@ function MoodChart({ data }: { readonly data: ReadonlyArray<{ day: number; score
           strokeLinejoin="round"
           strokeLinecap="round"
         />
-        {/* Start point with label */}
+        {/* Start point */}
         <Circle cx={first.x} cy={first.y} r={5} fill={COLORS.secondary} stroke="#FFFFFF" strokeWidth={1.5} />
         <SvgText x={first.x + 8} y={first.y - 8} fontSize={11} fill={COLORS.textSecondary} textAnchor="start">
           起点 {first.score}
         </SvgText>
-        {/* End point with label */}
+        {/* End point */}
         <Circle cx={last.x} cy={last.y} r={5} fill={COLORS.accent} stroke="#FFFFFF" strokeWidth={1.5} />
         <SvgText x={last.x - 8} y={last.y - 8} fontSize={11} fill={COLORS.textSecondary} textAnchor="end">
           终点 {last.score}
@@ -189,7 +184,7 @@ function EncouragementBlock({ direction }: { readonly direction: string }) {
   const text = ENCOURAGEMENT[direction] ?? ENCOURAGEMENT.improving
   return (
     <View style={styles.encouragementContainer}>
-      <Text style={styles.encouragementText}>「{text}」</Text>
+      <Text style={styles.encouragementText}>{text}</Text>
     </View>
   )
 }
@@ -197,23 +192,15 @@ function EncouragementBlock({ direction }: { readonly direction: string }) {
 function ActionButtons({ onExport, onGoHome }: { readonly onExport: () => void; readonly onGoHome: () => void }) {
   return (
     <View style={styles.actionContainer}>
-      {/* Export uses ghost style */}
+      {/* Primary button on top */}
+      <Pressable style={styles.primaryButton} onPress={onGoHome}>
+        <Text style={styles.primaryButtonText}>返回首页</Text>
+      </Pressable>
+      {/* Ghost button below */}
       <Pressable style={styles.ghostButton} onPress={onExport}>
         <IconExport size={18} color={COLORS.primary} />
         <Text style={styles.ghostButtonText}>导出旅程报告</Text>
       </Pressable>
-      {/* Home uses primary filled style */}
-      <Pressable style={styles.primaryButton} onPress={onGoHome}>
-        <Text style={styles.primaryButtonText}>返回首页</Text>
-      </Pressable>
-    </View>
-  )
-}
-
-function FooterSignature() {
-  return (
-    <View style={styles.footerSignature}>
-      <Text style={styles.footerSignatureText}>29天疗愈 × 你的名字</Text>
     </View>
   )
 }
@@ -249,33 +236,29 @@ export default function SummaryScreen() {
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Celebration section */}
-        <Animated.View entering={FadeIn.duration(600)}>
+        {/* Celebration */}
+        <Animated.View entering={FadeIn.duration(300)}>
           <CelebrationHeader />
         </Animated.View>
-        {/* Stats cards with SlideInUp */}
-        <Animated.View entering={SlideInUp.delay(200).duration(400)}>
+        {/* Stats */}
+        <Animated.View entering={FadeIn.delay(STAGGER_DELAY).duration(300)}>
           <StatsRow completedDays={completedDays} streakDays={streakDays} badgeCount={earnedBadges.length} />
         </Animated.View>
         {/* Mood chart */}
-        <Animated.View entering={FadeIn.delay(500).duration(500)}>
+        <Animated.View entering={FadeIn.delay(STAGGER_DELAY * 2).duration(300)}>
           <MoodChart data={scoreHistory} />
         </Animated.View>
         {/* Badge list */}
-        <Animated.View entering={FadeIn.delay(700).duration(400)}>
+        <Animated.View entering={FadeIn.delay(STAGGER_DELAY * 3).duration(300)}>
           <BadgeList earnedBadges={earnedBadges} />
         </Animated.View>
-        {/* Encouragement text */}
-        <Animated.View entering={FadeIn.delay(900).duration(500)}>
+        {/* Encouragement */}
+        <Animated.View entering={FadeIn.delay(STAGGER_DELAY * 4).duration(300)}>
           <EncouragementBlock direction={trend.direction} />
         </Animated.View>
-        {/* Action buttons */}
-        <Animated.View entering={FadeIn.delay(1100).duration(400)}>
+        {/* Actions */}
+        <Animated.View entering={FadeIn.delay(STAGGER_DELAY * 5).duration(300)}>
           <ActionButtons onExport={handleExport} onGoHome={handleGoHome} />
-        </Animated.View>
-        {/* Footer signature */}
-        <Animated.View entering={FadeIn.delay(1300).duration(400)}>
-          <FooterSignature />
         </Animated.View>
       </ScrollView>
     </View>
