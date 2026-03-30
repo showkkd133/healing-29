@@ -91,6 +91,17 @@ export const styles = StyleSheet.create({
     paddingVertical: SPACING['2xl'],
   },
 
+  // Journey arrow label shown after chart animation completes
+  journeyArrowContainer: {
+    alignItems: 'center',
+    marginTop: SPACING.sm,
+  },
+  journeyArrowText: {
+    fontSize: TYPOGRAPHY.fontSize.xs,
+    color: COLORS.textTertiary,
+    letterSpacing: 2,
+  },
+
   // Badge section
   badgeSection: {
     marginBottom: SPACING['2xl'],

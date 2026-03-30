@@ -1,4 +1,14 @@
-import { View, Text, StyleSheet } from 'react-native'
+import { useEffect } from 'react'
+import { StyleSheet } from 'react-native'
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  withRepeat,
+  Easing,
+  interpolate,
+  FadeIn,
+} from 'react-native-reanimated'
 import Svg, { Circle } from 'react-native-svg'
 import { COLORS, TYPOGRAPHY } from '@/constants/theme'
 
@@ -9,7 +19,7 @@ interface ProgressRingProps {
   totalDays?: number
 }
 
-// Minimal circular progress ring — visual focal point of the home screen
+// Circular progress ring with breathing animation — visual focal point of the home screen
 export default function ProgressRing({ currentDay, totalDays = TOTAL_DAYS }: ProgressRingProps) {
   const size = 200
   const strokeWidth = 6
@@ -20,62 +30,63 @@ export default function ProgressRing({ currentDay, totalDays = TOTAL_DAYS }: Pro
   const strokeDashoffset = circumference * (1 - progress)
   const percentage = Math.round(progress * 100)
 
+  // Breathing animation — slow pulse implying "healing in progress"
+  const breathe = useSharedValue(0)
+
+  useEffect(() => {
+    breathe.value = withRepeat(
+      withTiming(1, { duration: 4000, easing: Easing.inOut(Easing.ease) }),
+      -1,
+      true
+    )
+  }, [])
+
+  const ringStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(breathe.value, [0, 1], [0.7, 1]),
+    transform: [{ scale: interpolate(breathe.value, [0, 1], [1, 1.02]) }],
+  }))
+
   return (
-    <View
-      style={styles.container}
+    <Animated.View
+      style={[styles.container, ringStyle]}
       accessibilityRole="progressbar"
       accessibilityLabel={`旅程进度，第${currentDay}天，共${totalDays}天`}
     >
       <Svg width={size} height={size}>
-        {/* Background track */}
-        <Circle
-          cx={center}
-          cy={center}
-          r={radius}
-          stroke={COLORS.border}
-          strokeWidth={strokeWidth}
-          fill="none"
-        />
-        {/* Progress arc */}
-        <Circle
-          cx={center}
-          cy={center}
-          r={radius}
-          stroke={COLORS.primary}
-          strokeWidth={strokeWidth}
-          fill="none"
-          strokeDasharray={`${circumference}`}
-          strokeDashoffset={strokeDashoffset}
-          strokeLinecap="round"
-          transform={`rotate(-90, ${center}, ${center})`}
-        />
+        <Circle cx={center} cy={center} r={radius}
+          stroke={COLORS.border} strokeWidth={strokeWidth} fill="none" />
+        <Circle cx={center} cy={center} r={radius}
+          stroke={COLORS.primary} strokeWidth={strokeWidth} fill="none"
+          strokeDasharray={`${circumference}`} strokeDashoffset={strokeDashoffset}
+          strokeLinecap="round" transform={`rotate(-90, ${center}, ${center})`} />
       </Svg>
-      {/* Center text — day label + percentage */}
-      <View style={styles.textContainer}>
-        <Text style={styles.dayLabel}>Day {currentDay}</Text>
-        <Text style={styles.percentage}>{percentage}%</Text>
-      </View>
-    </View>
+      {/* Center text — day label + percentage with fade-in on change */}
+      <Animated.View style={styles.textContainer} entering={FadeIn.duration(600)}>
+        <Animated.Text
+          key={`day-${currentDay}`}
+          style={styles.dayLabel}
+          entering={FadeIn.duration(400)}
+        >
+          Day {currentDay}
+        </Animated.Text>
+        <Animated.Text
+          key={`pct-${percentage}`}
+          style={styles.percentage}
+          entering={FadeIn.duration(400)}
+        >
+          {percentage}%
+        </Animated.Text>
+      </Animated.View>
+    </Animated.View>
   )
 }
 
 const styles = StyleSheet.create({
-  container: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  textContainer: {
-    position: 'absolute',
-    alignItems: 'center',
-  },
+  container: { alignItems: 'center', justifyContent: 'center' },
+  textContainer: { position: 'absolute', alignItems: 'center' },
   dayLabel: {
-    fontSize: TYPOGRAPHY.fontSize.md,
-    fontWeight: TYPOGRAPHY.fontWeight.medium,
-    color: COLORS.text,
-    marginBottom: 2,
+    fontSize: TYPOGRAPHY.fontSize.md, fontWeight: TYPOGRAPHY.fontWeight.medium,
+    color: COLORS.text, marginBottom: 2,
   },
-  percentage: {
-    fontSize: TYPOGRAPHY.fontSize.xs,
-    color: COLORS.textTertiary,
-  },
+  percentage: { fontSize: TYPOGRAPHY.fontSize.xs, color: COLORS.textTertiary },
 })

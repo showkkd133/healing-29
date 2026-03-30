@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { View, Text, StyleSheet, ScrollView } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -17,8 +17,9 @@ import { useUserStore } from '@/stores/userStore'
 import { useEmotionStore } from '@/stores/emotionStore'
 import { useJourneyStore } from '@/stores/journeyStore'
 import { useBadgeStore } from '@/stores/badgeStore'
-import { COLORS, SPACING, TYPOGRAPHY, BORDER_RADIUS } from '@/constants/theme'
+import { COLORS, SPACING, TYPOGRAPHY } from '@/constants/theme'
 import { IconLock, IconCheck } from '@/components/icons'
+import TearTransition from '@/components/shared/TearTransition'
 import type { DayNumber, DayCompletionPayload, EmotionIntensity, GenericDayTaskData } from '@/types'
 
 const MAX_DAY = 29
@@ -68,7 +69,7 @@ const DAY_COMPONENTS: Record<number, DayComponent> = {
 function DayHeader({ dayId, theme }: { dayId: number; theme: string }) {
   return (
     <View style={styles.header} accessibilityRole="header">
-      <Text style={styles.dayBadge}>Day {dayId}</Text>
+      <Text style={styles.dayLabel}>Day {dayId}</Text>
       <Text style={styles.dayTheme}>{theme}</Text>
     </View>
   )
@@ -157,6 +158,8 @@ export default function DayScreen() {
   const dailyLogs = useJourneyStore((s) => s.dailyLogs)
   const checkAndAward = useBadgeStore((s) => s.checkAndAward)
 
+  const [showTear, setShowTear] = useState(false)
+
   const dayId = Number(id) || 1
   const config = getDayConfig(dayId)
   const theme = config?.theme ?? `第 ${dayId} 天`
@@ -195,7 +198,11 @@ export default function DayScreen() {
       advanceDay()
     }
 
-    // Navigate to summary on final day, otherwise go back
+    // Trigger tear-off animation instead of navigating immediately
+    setShowTear(true)
+  }
+
+  const handleTearComplete = () => {
     if (dayId === MAX_DAY) {
       router.replace('/summary')
     } else {
@@ -223,6 +230,14 @@ export default function DayScreen() {
           DayComponent && <DayComponent onComplete={handleComplete} />
         )}
       </ScrollView>
+
+      {showTear && (
+        <TearTransition
+          visible={showTear}
+          dayNumber={dayId}
+          onComplete={handleTearComplete}
+        />
+      )}
     </View>
   )
 }
@@ -234,61 +249,40 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
-  // Top decorative gradient overlay
-  topGradient: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 120,
-    zIndex: 0,
-  },
   scrollContent: {
     paddingHorizontal: SPACING['2xl'],
     paddingBottom: SPACING['4xl'],
   },
-  // Header
+  // Header — minimal label + title
   header: {
     marginBottom: SPACING['2xl'],
   },
-  dayBadge: {
+  dayLabel: {
     fontSize: TYPOGRAPHY.fontSize.sm,
-    fontWeight: TYPOGRAPHY.fontWeight.semibold,
-    alignSelf: 'flex-start',
-    paddingHorizontal: SPACING.xl,
-    paddingVertical: SPACING.xs + 2,
-    borderRadius: BORDER_RADIUS.full,
-    overflow: 'hidden',
-    marginBottom: SPACING.sm,
+    fontWeight: TYPOGRAPHY.fontWeight.medium,
+    color: COLORS.textSecondary,
+    marginBottom: 4,
   },
   dayTheme: {
     fontSize: TYPOGRAPHY.fontSize['2xl'],
     fontWeight: TYPOGRAPHY.fontWeight.bold,
     color: COLORS.text,
   },
-  themeDecorLine: {
-    width: 24,
-    height: 2,
-    borderRadius: 1,
-    marginTop: SPACING.sm,
-  },
-  // Guidance — quote-block style with left border
+  // Guidance — plain text
   guidanceContainer: {
-    marginBottom: SPACING['2xl'],
-    borderLeftWidth: 3,
-    borderRadius: 2,
-    paddingLeft: SPACING.lg,
-    paddingVertical: SPACING.md,
-    paddingRight: SPACING.md,
+    marginTop: SPACING.md,
+    marginBottom: SPACING['2xl'] + SPACING.sm,
   },
   guidanceText: {
     fontSize: TYPOGRAPHY.fontSize.md,
     color: COLORS.textSecondary,
     lineHeight: 29, // 17px * 1.7
   },
-  // Locked / Completed shared container
+  // Locked / Completed — vertically centered
   lockedContainer: {
+    flex: 1,
     alignItems: 'center',
+    justifyContent: 'center',
     paddingVertical: SPACING['6xl'],
   },
   lockedIcon: {
@@ -313,7 +307,6 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     fontWeight: TYPOGRAPHY.fontWeight.medium,
   },
-  // Completed state — elegant circle with checkmark
   completedCircle: {
     width: 56,
     height: 56,

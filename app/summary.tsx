@@ -1,11 +1,14 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, useState, useEffect } from 'react'
 import {
   View, Text, ScrollView, Pressable, FlatList, Alert,
 } from 'react-native'
-import Animated, { FadeIn } from 'react-native-reanimated'
+import Animated, {
+  FadeIn, useSharedValue, useAnimatedStyle, withSpring,
+  withDelay,
+} from 'react-native-reanimated'
 import { useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import Svg, { Polyline, Circle, Text as SvgText } from 'react-native-svg'
+import Svg, { Polyline, Text as SvgText, Line } from 'react-native-svg'
 import { useUserStore } from '@/stores/userStore'
 import { useEmotionStore } from '@/stores/emotionStore'
 import { useJourneyStore } from '@/stores/journeyStore'
@@ -77,7 +80,91 @@ function StatsRow({
   )
 }
 
+// Animated data point that scales in when it first appears
+function AnimatedDataPoint({
+  cx, cy, isEndpoint, color, delay,
+}: {
+  readonly cx: number
+  readonly cy: number
+  readonly isEndpoint: boolean
+  readonly color: string
+  readonly delay: number
+}) {
+  const scale = useSharedValue(0)
+
+  useEffect(() => {
+    scale.value = withDelay(delay, withSpring(1, { damping: 12, stiffness: 180 }))
+  }, [delay, scale])
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    position: 'absolute' as const,
+    left: cx - (isEndpoint ? 5 : 3),
+    top: cy - (isEndpoint ? 5 : 3),
+    width: isEndpoint ? 10 : 6,
+    height: isEndpoint ? 10 : 6,
+    borderRadius: isEndpoint ? 5 : 3,
+    backgroundColor: color,
+    borderWidth: isEndpoint ? 1.5 : 0,
+    borderColor: '#FFFFFF',
+    transform: [{ scale: scale.value }],
+  }))
+
+  return <Animated.View style={animatedStyle} />
+}
+
+// Total animation duration for the chart drawing (ms)
+const CHART_DRAW_DURATION = 2000
+// Delay before chart animation starts (ms)
+const CHART_DRAW_DELAY = 1000
+
 function MoodChart({ data }: { readonly data: ReadonlyArray<{ day: number; score: number }> }) {
+  const [visibleCount, setVisibleCount] = useState(0)
+  const [animationDone, setAnimationDone] = useState(false)
+
+  const points = useMemo(() => {
+    if (data.length === 0) return []
+    const plotW = CHART_WIDTH - CHART_PADDING.left - CHART_PADDING.right
+    const plotH = CHART_HEIGHT - CHART_PADDING.top - CHART_PADDING.bottom
+    return data.map((d) => ({
+      x: CHART_PADDING.left + ((d.day - 1) / 28) * plotW,
+      y: CHART_PADDING.top + plotH - ((d.score - 1) / 9) * plotH,
+      score: d.score,
+    }))
+  }, [data])
+
+  // Progressive reveal: show one more point at each tick
+  useEffect(() => {
+    if (points.length === 0) return
+
+    // Start with the first point visible after delay
+    const startTimer = setTimeout(() => {
+      setVisibleCount(1)
+
+      if (points.length <= 1) {
+        setAnimationDone(true)
+        return
+      }
+
+      const intervalMs = CHART_DRAW_DURATION / (points.length - 1)
+      const interval = setInterval(() => {
+        setVisibleCount((prev) => {
+          const next = prev + 1
+          if (next >= points.length) {
+            clearInterval(interval)
+            setAnimationDone(true)
+            return points.length
+          }
+          return next
+        })
+      }, intervalMs)
+
+      // Cleanup interval on unmount
+      return () => clearInterval(interval)
+    }, CHART_DRAW_DELAY)
+
+    return () => clearTimeout(startTimer)
+  }, [points.length])
+
   if (data.length === 0) {
     return (
       <View style={styles.chartContainer}>
@@ -87,48 +174,118 @@ function MoodChart({ data }: { readonly data: ReadonlyArray<{ day: number; score
     )
   }
 
-  const plotW = CHART_WIDTH - CHART_PADDING.left - CHART_PADDING.right
-  const plotH = CHART_HEIGHT - CHART_PADDING.top - CHART_PADDING.bottom
+  const visiblePoints = points.slice(0, visibleCount)
+  const polyline = visiblePoints.map((p) => `${p.x},${p.y}`).join(' ')
 
-  const points = data.map((d) => ({
-    x: CHART_PADDING.left + ((d.day - 1) / 28) * plotW,
-    y: CHART_PADDING.top + plotH - ((d.score - 1) / 9) * plotH,
-    score: d.score,
-  }))
-
-  const polyline = points.map((p) => `${p.x},${p.y}`).join(' ')
   const first = points[0]
   const last = points[points.length - 1]
 
   return (
     <View style={styles.chartContainer}>
-      <Text style={styles.chartTitle}>情绪变化曲线</Text>
-      <Svg width={CHART_WIDTH} height={CHART_HEIGHT}>
-        <Polyline
-          points={polyline}
-          fill="none"
-          stroke={COLORS.primary}
-          strokeWidth={2}
-          strokeLinejoin="round"
-          strokeLinecap="round"
-        />
-        {/* Start point */}
-        <Circle cx={first.x} cy={first.y} r={5} fill={COLORS.secondary} stroke="#FFFFFF" strokeWidth={1.5} />
-        <SvgText x={first.x + 8} y={first.y - 8} fontSize={11} fill={COLORS.textSecondary} textAnchor="start">
-          起点 {first.score}
-        </SvgText>
-        {/* End point */}
-        <Circle cx={last.x} cy={last.y} r={5} fill={COLORS.accent} stroke="#FFFFFF" strokeWidth={1.5} />
-        <SvgText x={last.x - 8} y={last.y - 8} fontSize={11} fill={COLORS.textSecondary} textAnchor="end">
-          终点 {last.score}
-        </SvgText>
-        <SvgText x={CHART_PADDING.left} y={CHART_HEIGHT - 4} fontSize={10} fill={COLORS.textTertiary} textAnchor="start">
-          Day 1
-        </SvgText>
-        <SvgText x={CHART_WIDTH - CHART_PADDING.right} y={CHART_HEIGHT - 4} fontSize={10} fill={COLORS.textTertiary} textAnchor="end">
-          Day 29
-        </SvgText>
-      </Svg>
+      <Text style={styles.chartTitle}>成长轨迹回放</Text>
+      <View>
+        <Svg width={CHART_WIDTH} height={CHART_HEIGHT}>
+          {/* Axis labels — always visible */}
+          <SvgText
+            x={CHART_PADDING.left}
+            y={CHART_HEIGHT - 4}
+            fontSize={10}
+            fill={COLORS.textTertiary}
+            textAnchor="start"
+          >
+            Day 1
+          </SvgText>
+          <SvgText
+            x={CHART_WIDTH - CHART_PADDING.right}
+            y={CHART_HEIGHT - 4}
+            fontSize={10}
+            fill={COLORS.textTertiary}
+            textAnchor="end"
+          >
+            Day 29
+          </SvgText>
+
+          {/* Baseline grid line */}
+          <Line
+            x1={CHART_PADDING.left}
+            y1={CHART_HEIGHT - CHART_PADDING.bottom}
+            x2={CHART_WIDTH - CHART_PADDING.right}
+            y2={CHART_HEIGHT - CHART_PADDING.bottom}
+            stroke={COLORS.border}
+            strokeWidth={0.5}
+          />
+
+          {/* Animated polyline — only rendered points so far */}
+          {visiblePoints.length >= 2 && (
+            <Polyline
+              points={polyline}
+              fill="none"
+              stroke={COLORS.primary}
+              strokeWidth={2}
+              strokeLinejoin="round"
+              strokeLinecap="round"
+            />
+          )}
+
+          {/* Endpoint labels — appear after animation completes */}
+          {animationDone && (
+            <>
+              <SvgText
+                x={first.x + 8}
+                y={first.y - 8}
+                fontSize={11}
+                fill={COLORS.textSecondary}
+                textAnchor="start"
+              >
+                起点 {first.score}
+              </SvgText>
+              <SvgText
+                x={last.x - 8}
+                y={last.y - 8}
+                fontSize={11}
+                fill={COLORS.textSecondary}
+                textAnchor="end"
+              >
+                终点 {last.score}
+              </SvgText>
+            </>
+          )}
+        </Svg>
+
+        {/* Animated data point circles (overlaid via absolute positioning) */}
+        {visiblePoints.map((p, i) => {
+          const isFirst = i === 0
+          const isLast = i === points.length - 1 && animationDone
+          const isEndpoint = isFirst || isLast
+          const color = isFirst
+            ? COLORS.secondary
+            : isLast
+              ? COLORS.accent
+              : COLORS.primary
+          return (
+            <AnimatedDataPoint
+              key={`pt-${data[i].day}`}
+              cx={p.x}
+              cy={p.y}
+              isEndpoint={isEndpoint}
+              color={color}
+              delay={0}
+            />
+          )
+        })}
+      </View>
+
+      {/* Journey arrow label — fades in after drawing completes */}
+      {animationDone && (
+        <Animated.View
+          entering={FadeIn.duration(400)}
+          style={styles.journeyArrowContainer}
+        >
+          <Text style={styles.journeyArrowText}>
+            起点 → 终点
+          </Text>
+        </Animated.View>
+      )}
     </View>
   )
 }

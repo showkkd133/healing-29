@@ -1,8 +1,9 @@
-import { useState } from 'react'
-import { View, Text, StyleSheet, Pressable } from 'react-native'
+import { useState, useEffect, useRef } from 'react'
+import { View, Text, StyleSheet, Pressable, Animated as RNAnimated } from 'react-native'
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated'
 import { COLORS, SPACING, TYPOGRAPHY } from '@/constants/theme'
 import { IconPen, IconChart, IconSeedling } from '@/components/icons'
+import { useTypewriter } from '@/hooks/useTypewriter'
 
 interface WelcomeOverlayProps { onStart: () => void }
 
@@ -18,11 +19,35 @@ const STEPS: readonly Step[] = [
   { icon: <IconSeedling size={32} color={COLORS.accent} />, title: '29 天后，遇见新的自己', description: '四个阶段，从疗愈到重生。' },
 ] as const
 
+// Blinking cursor for typewriter effect
+function BlinkingCursor() {
+  const opacity = useRef(new RNAnimated.Value(1)).current
+
+  useEffect(() => {
+    const animation = RNAnimated.loop(
+      RNAnimated.sequence([
+        RNAnimated.timing(opacity, { toValue: 0, duration: 400, useNativeDriver: true }),
+        RNAnimated.timing(opacity, { toValue: 1, duration: 400, useNativeDriver: true }),
+      ])
+    )
+    animation.start()
+    return () => animation.stop()
+  }, [opacity])
+
+  return (
+    <RNAnimated.Text style={[styles.cursor, { opacity }]}>|</RNAnimated.Text>
+  )
+}
+
 // Minimal welcome overlay — quiet white dialog
 export default function WelcomeOverlay({ onStart }: WelcomeOverlayProps) {
   const [step, setStep] = useState(0)
   const current = STEPS[step]
   const isLast = step === STEPS.length - 1
+
+  // Typewriter: title is fast (30ms) with no delay, description is slower (40ms) with 300ms delay
+  const { displayedText: titleText, isComplete: titleDone } = useTypewriter(current.title, 30, 0)
+  const { displayedText: descText, isComplete: descDone } = useTypewriter(current.description, 40, 300)
 
   const goNext = () => {
     if (isLast) { onStart(); return }
@@ -37,10 +62,12 @@ export default function WelcomeOverlay({ onStart }: WelcomeOverlayProps) {
           {current.icon}
         </Animated.View>
         <Animated.Text key={`t-${step}`} entering={FadeIn.duration(150)} exiting={FadeOut.duration(100)} style={styles.title}>
-          {current.title}
+          {titleText}
+          {!titleDone && <BlinkingCursor />}
         </Animated.Text>
         <Animated.Text key={`d-${step}`} entering={FadeIn.duration(150)} exiting={FadeOut.duration(100)} style={styles.description}>
-          {current.description}
+          {descText}
+          {titleDone && !descDone && <BlinkingCursor />}
         </Animated.Text>
 
         {/* Dot indicators */}
@@ -140,5 +167,9 @@ const styles = StyleSheet.create({
     fontSize: TYPOGRAPHY.fontSize.base,
     fontWeight: TYPOGRAPHY.fontWeight.semibold,
     textDecorationLine: 'underline',
+  },
+  cursor: {
+    color: COLORS.primary,
+    fontWeight: '300' as const,
   },
 })

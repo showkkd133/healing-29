@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import {
   View,
   Text,
@@ -24,9 +24,11 @@ import { useBadgeStore } from '@/stores/badgeStore'
 import { JourneyMap } from '@/components/shared/JourneyMap'
 import { COLORS, SPACING, TYPOGRAPHY, BORDER_RADIUS } from '@/constants/theme'
 import { getStageByDay } from '@/constants/stages'
+import { DAILY_QUOTES } from '@/constants/quotes'
 import ProgressRing from '@/components/home/ProgressRing'
 import MoodTrend from '@/components/home/MoodTrend'
 import WelcomeOverlay from '@/components/home/WelcomeOverlay'
+import WeatherParticles from '@/components/home/WeatherParticles'
 import { IconBadge, IconSettings } from '@/components/icons'
 
 const TOTAL_DAYS = 29
@@ -51,10 +53,28 @@ export default function HomeScreen() {
 
   const earnedCount = useBadgeStore((s) => s.earnedBadges.length)
 
+  // Detect newly completed day and trigger ripple animation
+  const [justCompleted, setJustCompleted] = useState<number | undefined>()
+  const prevCompletedCountRef = useRef(completedDays.length)
+
+  useEffect(() => {
+    if (completedDays.length > prevCompletedCountRef.current) {
+      const newest = Math.max(...completedDays)
+      setJustCompleted(newest)
+      const timer = setTimeout(() => setJustCompleted(undefined), 1500)
+      return () => clearTimeout(timer)
+    }
+    prevCompletedCountRef.current = completedDays.length
+  }, [completedDays])
+
   const isFirstTime = userId === null
   const moods = scoreHistory.length > 0
     ? scoreHistory.map((h) => h.score as number)
     : DEFAULT_MOODS
+
+  const avgMood = moods.length > 0
+    ? Math.round(moods.reduce((a, b) => a + b, 0) / moods.length)
+    : 0
 
   const stage = getStageByDay(currentDay)
 
@@ -104,6 +124,7 @@ export default function HomeScreen() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
+      <WeatherParticles moodScore={avgMood} />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -162,6 +183,13 @@ export default function HomeScreen() {
           </Animated.View>
         )}
 
+        {/* Daily healing quote */}
+        <Animated.View entering={FadeIn.delay(100).duration(300)}>
+          <Text style={styles.dailyQuote}>
+            「{DAILY_QUOTES[currentDay - 1] ?? ''}」
+          </Text>
+        </Animated.View>
+
         {/* CTA button — full width gradient */}
         <Animated.View entering={SlideInUp.delay(400).duration(400).springify()}>
           <Animated.View style={animatedButtonStyle}>
@@ -207,6 +235,7 @@ export default function HomeScreen() {
               currentDay={currentDay}
               completedDays={completedDays}
               onDayPress={(day) => router.push(`/day/${day}`)}
+              justCompletedDay={justCompleted}
             />
           </Animated.View>
         </Animated.View>
@@ -231,7 +260,6 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
   },
   scrollContent: {
     paddingHorizontal: SPACING['2xl'],
@@ -313,6 +341,16 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     lineHeight: TYPOGRAPHY.lineHeight.base,
     textAlign: 'center',
+  },
+  // Daily quote — gentle serif text
+  dailyQuote: {
+    textAlign: 'center',
+    fontSize: TYPOGRAPHY.fontSize.base,
+    fontFamily: TYPOGRAPHY.fontFamily.serif,
+    fontStyle: 'italic',
+    color: COLORS.textSecondary,
+    lineHeight: TYPOGRAPHY.fontSize.base * 1.7,
+    marginVertical: 24,
   },
   // CTA button — full width
   startButton: {

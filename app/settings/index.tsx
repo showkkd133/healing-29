@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import {
   View,
   Text,
@@ -6,6 +7,7 @@ import {
   Switch,
   Alert,
   ScrollView,
+  Animated,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
@@ -25,6 +27,152 @@ const PRIVACY_LEVELS = [
   { id: 'offline' as PrivacyLevel, label: '严格', description: '数据加密且不允许导出' },
 ] as const
 
+// Milestone days displayed with labels below dots
+const MILESTONES = new Set([7, 14, 21, 29])
+const TOTAL_DAYS = 29
+const DOT_SPACING = 24
+
+// Pulse animation for the current-day dot
+function PulseDot() {
+  const scale = useRef(new Animated.Value(1)).current
+  const opacity = useRef(new Animated.Value(1)).current
+
+  useEffect(() => {
+    const pulse = Animated.loop(
+      Animated.sequence([
+        Animated.parallel([
+          Animated.timing(scale, { toValue: 1.6, duration: 800, useNativeDriver: true }),
+          Animated.timing(opacity, { toValue: 0, duration: 800, useNativeDriver: true }),
+        ]),
+        Animated.parallel([
+          Animated.timing(scale, { toValue: 1, duration: 0, useNativeDriver: true }),
+          Animated.timing(opacity, { toValue: 1, duration: 0, useNativeDriver: true }),
+        ]),
+      ]),
+    )
+    pulse.start()
+    return () => pulse.stop()
+  }, [scale, opacity])
+
+  return (
+    <Animated.View
+      style={[
+        tlStyles.pulseRing,
+        { transform: [{ scale }], opacity },
+      ]}
+    />
+  )
+}
+
+function MiniTimeline({
+  currentDay,
+  completedDays,
+}: {
+  readonly currentDay: number
+  readonly completedDays: readonly number[]
+}) {
+  const completedSet = new Set(completedDays)
+
+  return (
+    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+      <View style={tlStyles.container}>
+        {/* Background line */}
+        <View style={tlStyles.line} />
+        {/* Day dots */}
+        {Array.from({ length: TOTAL_DAYS }, (_, i) => {
+          const day = i + 1
+          const isCompleted = completedSet.has(day)
+          const isCurrent = day === currentDay
+          const isMilestone = MILESTONES.has(day)
+
+          return (
+            <View key={day} style={tlStyles.dotColumn}>
+              <View style={tlStyles.dotWrapper}>
+                {isCurrent && <PulseDot />}
+                <View
+                  style={[
+                    tlStyles.dot,
+                    isCompleted && tlStyles.dotCompleted,
+                    isCurrent && tlStyles.dotCurrent,
+                    !isCompleted && !isCurrent && tlStyles.dotPending,
+                  ]}
+                />
+              </View>
+              {isMilestone && (
+                <Text style={tlStyles.milestoneLabel}>Day{day}</Text>
+              )}
+            </View>
+          )
+        })}
+      </View>
+    </ScrollView>
+  )
+}
+
+// Timeline-specific styles
+const tlStyles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    paddingHorizontal: 12,
+    paddingVertical: 16,
+    height: 64,
+    position: 'relative',
+  },
+  line: {
+    position: 'absolute',
+    top: 20,
+    left: 12,
+    right: 12,
+    height: 1,
+    backgroundColor: COLORS.border,
+  },
+  dotColumn: {
+    width: DOT_SPACING,
+    alignItems: 'center',
+  },
+  dotWrapper: {
+    width: DOT_SPACING,
+    height: DOT_SPACING,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  dotCompleted: {
+    backgroundColor: COLORS.primary,
+  },
+  dotCurrent: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: COLORS.accent,
+  },
+  dotPending: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  pulseRing: {
+    position: 'absolute',
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: COLORS.accent,
+  },
+  milestoneLabel: {
+    fontSize: 9,
+    color: COLORS.textSecondary,
+    marginTop: 2,
+  },
+})
+
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets()
   const router = useRouter()
@@ -33,7 +181,8 @@ export default function SettingsScreen() {
   const { currentDay, streakDays, createdAt } = useUserStore()
   const dailyLogs = useJourneyStore((s) => s.dailyLogs)
   const earnedCount = useBadgeStore((s) => s.earnedBadges.length)
-  const completedDays = Object.keys(dailyLogs).length
+  const completedDayCount = Object.keys(dailyLogs).length
+  const completedDayList = Object.keys(dailyLogs).map(Number)
 
   // Format start date
   const formattedStartDate = createdAt
@@ -274,7 +423,7 @@ export default function SettingsScreen() {
           <Text style={styles.sectionTitle}>旅程统计</Text>
           <View style={styles.card}>
             {([
-              ['已完成天数', `${completedDays}/29`],
+              ['已完成天数', `${completedDayCount}/29`],
               ['连续打卡', `${streakDays} 天`],
               ['获得徽章', `${earnedCount} 枚`],
               ['开始日期', formattedStartDate],
@@ -287,6 +436,14 @@ export default function SettingsScreen() {
                 </View>
               </View>
             ))}
+          </View>
+
+          {/* Mini healing timeline */}
+          <View style={[styles.card, { marginTop: 12 }]}>
+            <MiniTimeline
+              currentDay={currentDay}
+              completedDays={completedDayList}
+            />
           </View>
         </View>
 
