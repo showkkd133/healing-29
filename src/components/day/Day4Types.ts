@@ -1,0 +1,39 @@
+// Shared types and constants for Day4 Declutter components
+
+export interface DeclutterItem {
+  readonly id: string
+  readonly name: string
+  readonly category: string
+}
+
+export const CATEGORIES = [
+  { key: 'photo', label: '📷 照片类' },
+  { key: 'gift', label: '🎁 礼物类' },
+  { key: 'daily', label: '🏠 日常用品类' },
+  { key: 'other', label: '📦 其他' },
+] as const
+
+export const GUIDANCE_TEXT = '今天只收拾，不做决定。把相关物品放进一个盒子'
+export const COMPLETION_TEXT = '你把回忆收好了，现在房间是现在的你'
+
+// Box fill levels based on item count
+export const getBoxEmoji = (count: number): string => {
+  if (count === 0) return '📦'
+  if (count <= 3) return '🗃️'
+  if (count <= 6) return '📫'
+  return '🎁'
+}
+
+export const getBoxLabel = (count: number): string => {
+  if (count === 0) return '空箱子'
+  if (count <= 3) return '刚开始装'
+  if (count <= 6) return '装了一半'
+  return '快满了'
+}
+
+// Default seal date: 3 months from today
+export const getDefaultSealDate = (): string => {
+  const date = new Date()
+  date.setMonth(date.getMonth() + 3)
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+}

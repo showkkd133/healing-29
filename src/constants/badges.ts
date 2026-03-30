@@ -1,0 +1,228 @@
+// Badge system definitions — unlocked as users progress through the journey
+
+import type { Badge } from '@/types'
+
+export const BADGES: readonly Badge[] = [
+  // ─── Milestone Badges (day completion) ────────────────────────────
+  {
+    id: 'first-step',
+    name: '第一步',
+    description: '完成第1天的任务',
+    icon: '👣',
+    category: 'milestone',
+    unlockedAt: null,
+    requirement: { type: 'day_complete', value: 1 },
+  },
+  {
+    id: 'one-week',
+    name: '一周勇士',
+    description: '完成前7天的旅程',
+    icon: '🏅',
+    category: 'milestone',
+    unlockedAt: null,
+    requirement: { type: 'day_complete', value: 7 },
+  },
+  {
+    id: 'halfway',
+    name: '半程英雄',
+    description: '完成第14天，你已走过一半',
+    icon: '⭐',
+    category: 'milestone',
+    unlockedAt: null,
+    requirement: { type: 'day_complete', value: 14 },
+  },
+  {
+    id: 'three-weeks',
+    name: '三周里程碑',
+    description: '完成前21天的旅程',
+    icon: '🏆',
+    category: 'milestone',
+    unlockedAt: null,
+    requirement: { type: 'day_complete', value: 21 },
+  },
+  {
+    id: 'journey-complete',
+    name: '涅槃重生',
+    description: '完成全部29天，你做到了！',
+    icon: '🦋',
+    category: 'milestone',
+    unlockedAt: null,
+    requirement: { type: 'day_complete', value: 29 },
+  },
+
+  // ─── Streak Badges (consecutive days) ─────────────────────────────
+  {
+    id: 'streak-3',
+    name: '初露锋芒',
+    description: '连续完成3天',
+    icon: '🔥',
+    category: 'streak',
+    unlockedAt: null,
+    requirement: { type: 'streak', value: 3 },
+  },
+  {
+    id: 'streak-7',
+    name: '势不可挡',
+    description: '连续完成7天',
+    icon: '💪',
+    category: 'streak',
+    unlockedAt: null,
+    requirement: { type: 'streak', value: 7 },
+  },
+  {
+    id: 'streak-14',
+    name: '坚韧不拔',
+    description: '连续完成14天',
+    icon: '🌟',
+    category: 'streak',
+    unlockedAt: null,
+    requirement: { type: 'streak', value: 14 },
+  },
+  {
+    id: 'streak-29',
+    name: '完美旅程',
+    description: '29天零中断，完美坚持！',
+    icon: '👑',
+    category: 'streak',
+    unlockedAt: null,
+    requirement: { type: 'streak', value: 29 },
+  },
+
+  // ─── Stage Completion Badges ──────────────────────────────────────
+  {
+    id: 'stage-emergency',
+    name: '自救成功',
+    description: '完成"紧急自救"阶段',
+    icon: '🛟',
+    category: 'stage',
+    unlockedAt: null,
+    requirement: { type: 'stage_complete', value: 1, stageId: 'emergency' },
+  },
+  {
+    id: 'stage-rebuild',
+    name: '秩序回归',
+    description: '完成"秩序重建"阶段',
+    icon: '🧱',
+    category: 'stage',
+    unlockedAt: null,
+    requirement: { type: 'stage_complete', value: 1, stageId: 'rebuild' },
+  },
+  {
+    id: 'stage-energy',
+    name: '能量满格',
+    description: '完成"能量补给"阶段',
+    icon: '⚡',
+    category: 'stage',
+    unlockedAt: null,
+    requirement: { type: 'stage_complete', value: 1, stageId: 'energy' },
+  },
+  {
+    id: 'stage-deep-healing',
+    name: '深层治愈',
+    description: '完成"深度疗愈"阶段',
+    icon: '💜',
+    category: 'stage',
+    unlockedAt: null,
+    requirement: { type: 'stage_complete', value: 1, stageId: 'deep-healing' },
+  },
+  {
+    id: 'stage-review',
+    name: '回望智者',
+    description: '完成"中途回顾"阶段',
+    icon: '🔭',
+    category: 'stage',
+    unlockedAt: null,
+    requirement: { type: 'stage_complete', value: 1, stageId: 'review' },
+  },
+  {
+    id: 'stage-disillusion',
+    name: '破茧而出',
+    description: '完成"祛魅脱敏"阶段',
+    icon: '🦋',
+    category: 'stage',
+    unlockedAt: null,
+    requirement: { type: 'stage_complete', value: 1, stageId: 'disillusion' },
+  },
+  {
+    id: 'stage-desensitize',
+    name: '无畏勇者',
+    description: '完成"脱敏训练"阶段',
+    icon: '🛡️',
+    category: 'stage',
+    unlockedAt: null,
+    requirement: { type: 'stage_complete', value: 1, stageId: 'desensitize' },
+  },
+  {
+    id: 'stage-reorganize',
+    name: '生活建筑师',
+    description: '完成"重组生活"阶段',
+    icon: '🏗️',
+    category: 'stage',
+    unlockedAt: null,
+    requirement: { type: 'stage_complete', value: 1, stageId: 'reorganize' },
+  },
+  {
+    id: 'stage-awakening',
+    name: '觉醒之光',
+    description: '完成"觉醒成长"阶段',
+    icon: '🌅',
+    category: 'stage',
+    unlockedAt: null,
+    requirement: { type: 'stage_complete', value: 1, stageId: 'awakening' },
+  },
+  {
+    id: 'stage-restart',
+    name: '新生',
+    description: '完成"崭新启程"阶段',
+    icon: '🌱',
+    category: 'stage',
+    unlockedAt: null,
+    requirement: { type: 'stage_complete', value: 1, stageId: 'restart' },
+  },
+
+  // ─── Special Badges ───────────────────────────────────────────────
+  {
+    id: 'night-owl',
+    name: '深夜疗愈者',
+    description: '在凌晨12点后完成任务',
+    icon: '🦉',
+    category: 'special',
+    unlockedAt: null,
+    requirement: { type: 'special', value: 1 },
+  },
+  {
+    id: 'early-bird',
+    name: '晨光先行者',
+    description: '在早上6点前完成任务',
+    icon: '🐦',
+    category: 'special',
+    unlockedAt: null,
+    requirement: { type: 'special', value: 2 },
+  },
+  {
+    id: 'wordsmith',
+    name: '文字疗愈师',
+    description: '累计写作超过3000字',
+    icon: '✍️',
+    category: 'special',
+    unlockedAt: null,
+    requirement: { type: 'special', value: 3 },
+  },
+  {
+    id: 'mood-climber',
+    name: '情绪攀登者',
+    description: '心情评分连续3天上升',
+    icon: '📈',
+    category: 'special',
+    unlockedAt: null,
+    requirement: { type: 'special', value: 4 },
+  },
+] as const
+
+/** Look up a badge by its id */
+export const getBadgeById = (badgeId: string): Badge | undefined =>
+  BADGES.find((badge) => badge.id === badgeId)
+
+/** Get all badges in a given category */
+export const getBadgesByCategory = (category: string): readonly Badge[] =>
+  BADGES.filter((badge) => badge.category === category)

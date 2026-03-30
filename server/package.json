@@ -1,0 +1,12 @@
+{
+  "name": "healing-29-server",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "bun --hot src/index.ts",
+    "start": "bun src/index.ts"
+  },
+  "dependencies": {
+    "hono": "^4.12.9",
+    "zod": "^4.3.6"
+  }
+}
